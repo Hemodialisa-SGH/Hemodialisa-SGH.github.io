@@ -1,0 +1,13 @@
+{
+  "name": "Unit Hemodialisa RS Sedayu General Hospital",
+  "short_name": "HD RSSGH",
+  "description": "Jadwal, alur pelayanan, edukasi pasien, dan ruang staf Unit Hemodialisa.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EFF3F7",
+  "theme_color": "#0E3B6B",
+  "icons": [
+    { "src": "assets/img/logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any" }
+  ]
+}
