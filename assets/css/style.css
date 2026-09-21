@@ -78,15 +78,22 @@ strong{font-weight:600}
 .board-foot{margin:10px 0 0;font-size:.8rem;color:var(--ink-soft)}
 .board-foot:empty{display:none}
 .bedgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.bedcol{border:1px solid var(--line);border-radius:8px;padding:10px;background:#F7FAFC;min-width:0}
-.bedcol h3{margin:0 0 8px;font-size:.9rem;display:flex;justify-content:space-between;gap:6px}
-.bedcol h3 span{font-family:var(--mono);font-weight:400;font-size:.74rem;color:var(--ink-soft)}
-.slot{font-family:var(--mono);font-size:.78rem;line-height:1.35;background:#E8F1FA;border:1px solid #B7D2EC;
-  color:var(--blue-deep);border-radius:6px;padding:5px 8px;margin-bottom:6px}
-.slot b{font-weight:600}
-.slot.now{background:var(--blue-deep);border-color:var(--blue-deep);color:#fff}
-.slot small{display:block;font-size:.72rem;opacity:.85}
-.bedcol .kosong{font-size:.8rem;color:var(--ink-soft);margin:0}
+.bedcard{background:#fff;border:1px solid var(--line);border-left:4px solid var(--green);border-radius:8px;padding:12px;min-width:0}
+.bedcard header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.bedcard h3{margin:0;font-size:1rem;white-space:nowrap}
+.pill{font-size:.78rem;font-weight:600;padding:2px 10px;border-radius:999px;white-space:nowrap}
+.is-kosong .pill{background:#E7F3E3;color:#2F6B24}
+.is-terisi{border-left-color:var(--blue-deep)}
+.is-terisi .pill{background:var(--blue-deep);color:#fff}
+.is-dipesan{border-left-color:var(--blue)}
+.is-dipesan .pill{background:#E8F1FA;color:var(--blue-deep)}
+.bed-now{margin:0 0 8px;font-size:.86rem;color:var(--blue-deep);font-weight:500}
+.bed-kosong{margin:0;font-size:.84rem;color:var(--ink-soft)}
+.slots{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.slots li{font-size:.82rem;color:var(--ink)}
+.slots b{font-family:var(--mono);font-weight:500}
+.slots small{display:block;font-size:.74rem;color:var(--ink-soft)}
+.slots li.lewat{color:var(--ink-soft)}
 .board-foot.demo{color:var(--amber)}
 
 /* statistik */
@@ -181,3 +188,4 @@ strong{font-weight:600}
   .bed{transition:background .15s ease}
 }
 .stats[hidden]{display:none}
+.is-gagal{border-left-color:var(--line)}.is-gagal .pill{background:#F1F4F7;color:var(--ink-soft)}

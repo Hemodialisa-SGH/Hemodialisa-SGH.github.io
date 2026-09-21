@@ -166,36 +166,54 @@ const reservasiTanggal = iso => DATA_JADWAL
   .filter(r => r.tanggal === iso)
   .sort((a, b) => (a.mulai ?? 0) - (b.mulai ?? 0));
 
+const sedangBerjalan = (r, iso) => iso === isoHariIni && r.mulai !== null && r.selesai !== null
+  && menitSekarang >= r.mulai && menitSekarang < r.selesai;
+
+// Satu kartu per bed. Hari ini: status Terisi/Kosong mengikuti jam sekarang.
+// Tanggal lain: Kosong bila tanpa reservasi, selain itu jumlah reservasinya.
 function gambarPapan(target, iso, tampilkanInisial) {
   target.innerHTML = '';
-  if (STATUS_DATA === 'kosong' || STATUS_DATA === 'gagal') {
-    target.innerHTML = '<p class="note">Jadwal daring belum tersedia. Untuk menanyakan slot kosong atau membuat reservasi, hubungi petugas unit.</p>';
-    return;
-  }
   const rows = reservasiTanggal(iso);
   const grid = document.createElement('div');
   grid.className = 'bedgrid';
 
   KONFIG.BED.forEach(b => {
     const isi = rows.filter(r => r.bed === normBed(b));
-    const col = document.createElement('div');
-    col.className = 'bedcol';
-    col.innerHTML = `<h3>${esc(b)}<span>${isi.length ? isi.length + ' sesi' : ''}</span></h3>`;
-    if (!isi.length) {
-      col.insertAdjacentHTML('beforeend', '<p class="kosong">Belum ada reservasi</p>');
+    const aktif = isi.find(r => sedangBerjalan(r, iso));
+    let status, kelas;
+    if (STATUS_DATA === 'gagal') { status = 'Belum terbaca'; kelas = 'gagal'; }
+    else if (aktif) { status = 'Terisi'; kelas = 'terisi'; }
+    else if (iso !== isoHariIni && isi.length) { status = `${isi.length} reservasi`; kelas = 'dipesan'; }
+    else { status = 'Kosong'; kelas = 'kosong'; }
+
+    const kartu = document.createElement('article');
+    kartu.className = 'bedcard is-' + kelas;
+    kartu.innerHTML = `<header><h3>${esc(b)}</h3><span class="pill">${status}</span></header>`;
+
+    if (aktif) {
+      const siapa = tampilkanInisial && aktif.inisial ? ` · ${esc(aktif.inisial)}` : '';
+      kartu.insertAdjacentHTML('beforeend',
+        `<p class="bed-now">Dialisis berjalan sampai ${formatJam(aktif.selesai)}${siapa}</p>`);
     }
-    isi.forEach(r => {
-      const berjalan = iso === isoHariIni && r.mulai !== null && r.selesai !== null
-        && menitSekarang >= r.mulai && menitSekarang < r.selesai;
-      const el = document.createElement('div');
-      el.className = 'slot' + (berjalan ? ' now' : '');
-      const siapa = tampilkanInisial ? esc(r.inisial || 'terisi') : 'terisi';
-      const detail = tampilkanInisial && (r.akses || r.ket)
-        ? `<small>${esc([r.akses, r.ket].filter(Boolean).join(' · '))}</small>` : '';
-      el.innerHTML = `<b>${formatJam(r.mulai)}–${formatJam(r.selesai)}</b> ${siapa}${berjalan ? ' (berjalan)' : ''}${detail}`;
-      col.appendChild(el);
-    });
-    grid.appendChild(col);
+
+    const lainnya = isi.filter(r => r !== aktif);
+    if (lainnya.length) {
+      const ul = document.createElement('ul');
+      ul.className = 'slots';
+      lainnya.forEach(r => {
+        const lewat = iso === isoHariIni && r.selesai !== null && r.selesai <= menitSekarang;
+        const siapa = tampilkanInisial ? (r.inisial ? ' · ' + esc(r.inisial) : '') : '';
+        const detail = tampilkanInisial && (r.akses || r.ket)
+          ? `<small>${esc([r.akses, r.ket].filter(Boolean).join(' · '))}</small>` : '';
+        ul.insertAdjacentHTML('beforeend',
+          `<li${lewat ? ' class="lewat"' : ''}><b>${formatJam(r.mulai)}–${formatJam(r.selesai)}</b>${siapa}${lewat ? ' (selesai)' : ''}${detail}</li>`);
+      });
+      kartu.appendChild(ul);
+    } else if (!aktif && STATUS_DATA !== 'gagal') {
+      kartu.insertAdjacentHTML('beforeend',
+        `<p class="bed-kosong">Belum ada reservasi${iso === isoHariIni ? ' hari ini' : ''}</p>`);
+    }
+    grid.appendChild(kartu);
   });
   target.appendChild(grid);
 }
@@ -258,7 +276,7 @@ async function muatData() {
     tandaiSumberData('Mode pratinjau: data contoh, bukan jadwal sebenarnya.', true);
   } else if (!KONFIG.SHEET_ID) {
     STATUS_DATA = 'kosong';
-    tandaiSumberData('', false);
+    tandaiSumberData('Hubungi petugas unit untuk menanyakan slot atau membuat reservasi.', false);
   } else {
     try {
       const jadwal = await ambilSheet(KONFIG.NAMA_TAB_JADWAL);
