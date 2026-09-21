@@ -12,6 +12,8 @@ assets/
   css/style.css
   js/app.js        <- semua konfigurasi ada di sini
   img/logo.png
+apps-script/
+  Kode.gs          <- API jadwal reservasi (ditempel ke Apps Script)
 ```
 
 ## Menayangkan di GitHub Pages
@@ -27,20 +29,34 @@ Semua yang perlu diubah ada di blok `KONFIG` pada `assets/js/app.js`:
 
 | Kunci | Keterangan |
 |---|---|
-| `SHEET_ID` | ID Google Sheet jadwal reservasi. Selama kosong, papan jadwal menampilkan pesan agar pasien menghubungi petugas unit. |
+| `API_URL` | URL aplikasi web Apps Script untuk jadwal reservasi (disarankan). Bila diisi, `SHEET_ID` diabaikan. |
+| `SHEET_ID` | Alternatif lama: ID Google Sheet yang dipublikasikan. Selama kosong, papan jadwal menampilkan pesan agar pasien menghubungi petugas unit. |
 | `NAMA_TAB_JADWAL` | Nama tab jadwal, bawaan `Jadwal`. |
 | `NAMA_TAB_REKAP` | Nama tab rekap bulanan, bawaan `Rekap`. |
 | `PIN_STAF` | PIN pembuka Ruang staf. |
 | `BED` | Daftar bed, bawaan `Bed 1` sampai `Bed 4`. |
 | `HARI_DITAMPILKAN` | Jumlah tanggal ke depan yang bisa dipilih di tab Jadwal. |
-| `TELEPON_UNIT` | Nomor telepon unit. Kosongkan bila belum ada; halaman akan mengarahkan ke Poliklinik atau IGD. |
 | `INTERKOM_CODE_BLUE` | Nomor interkom code blue, hanya tampil di Ruang staf. |
 | `SPO` | Daftar SPO unit beserta tautan dokumennya. |
 | `CEKLIS` | Butir ceklis harian troli emergensi dan mesin. |
 
 Untuk melihat tampilan dengan data contoh, buka situs dengan akhiran `?contoh=1`. Pengunjung biasa tidak pernah melihat data contoh.
 
-## Menyambungkan Google Sheets
+## Jadwal reservasi lewat Apps Script (disarankan)
+
+Dengan cara ini staf menambah dan menghapus reservasi langsung dari Ruang staf, tanpa membuka Sheet. Pengunjung umum hanya menerima jam dan bed yang terisi; inisial, akses, dan keterangan hanya dikirim bila PIN cocok, dan PIN diperiksa di server untuk setiap penyimpanan.
+
+1. Buat Google Sheet baru (tidak perlu dipublikasikan), lalu **Ekstensi → Apps Script**.
+2. Hapus isi `Kode.gs`, tempel isi `apps-script/Kode.gs` dari repositori ini, lalu simpan.
+3. Pilih fungsi `setup` di toolbar, klik **Jalankan**, dan izinkan akses. Tab `Jadwal` dibuat otomatis dan PIN server diatur ke `1209`.
+4. **Terapkan → Deployment baru → Aplikasi web**. Jalankan sebagai: *Saya*. Yang memiliki akses: *Siapa saja*.
+5. Salin URL yang berakhiran `/exec`, tempel ke `API_URL`.
+
+PIN server ada di **Setelan project → Properti skrip → PIN_STAF** dan harus sama dengan `PIN_STAF` di `app.js`. Server menolak reservasi yang bentrok jam pada bed yang sama. Situs menyegarkan jadwal otomatis setiap 2 menit.
+
+Bila mengubah `Kode.gs`, terapkan ulang lewat **Terapkan → Kelola deployment → Edit → Versi baru** agar URL tetap sama.
+
+## Alternatif: membaca Google Sheet yang dipublikasikan
 
 Sheet dibaca lewat Google Visualization API dengan JSONP, jadi tidak terbentur masalah CORS di GitHub Pages dan tidak memerlukan API key.
 
@@ -81,4 +97,4 @@ Ceklis disimpan di `localStorage` peramban masing-masing perangkat, terpisah per
 
 ## Mode luring
 
-`sw.js` menyimpan halaman, gaya, dan skrip agar tetap terbuka saat jaringan mati. Data dari Google Sheets sengaja tidak di-cache agar jadwal yang tampil selalu yang terbaru. Setiap kali mengubah isi situs, naikkan versi cache pada baris `const CACHE = 'hd-rssgh-v6'` menjadi `v7`, `v8`, dan seterusnya agar perubahan langsung terlihat di perangkat pengguna.
+`sw.js` menyimpan halaman, gaya, dan skrip agar tetap terbuka saat jaringan mati. Data dari Google Sheets sengaja tidak di-cache agar jadwal yang tampil selalu yang terbaru. Setiap kali mengubah isi situs, naikkan versi cache pada baris `const CACHE = 'hd-rssgh-v7'` menjadi `v8`, `v9`, dan seterusnya agar perubahan langsung terlihat di perangkat pengguna.

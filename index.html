@@ -72,7 +72,14 @@
     </div>
     <div>
       <h2>Kontak</h2>
-      <p id="kontak-unit">Hubungi petugas unit melalui Poliklinik Penyakit Dalam atau IGD RS Sedayu General Hospital.</p>
+      <p>Telepon atau WhatsApp unit:<br><strong class="telp">0877-2330-7788</strong></p>
+      <div class="kontak-aksi">
+        <a class="btn" href="tel:+6287723307788">Telepon</a>
+        <a class="btn btn-ghost" href="https://wa.me/6287723307788" target="_blank" rel="noopener">Chat WhatsApp</a>
+      </div>
+      <p>RS Sedayu General Hospital<br>Jl. Wates KM 10, Surobayan, Argomulyo, Sedayu, Bantul, DIY</p>
+      <p><a href="https://www.google.com/maps/search/?api=1&amp;query=RS+Sedayu+General+Hospital+Argomulyo+Bantul" target="_blank" rel="noopener">Buka di Google Maps</a><br>
+      <a href="https://sedayugeneralhospital.com" target="_blank" rel="noopener">Situs RS Sedayu General Hospital</a></p>
       <p class="note">Reservasi baru dan perubahan jadwal dialisis dilakukan lewat petugas unit, paling lambat satu hari sebelum jadwal.</p>
     </div>
   </div>
@@ -89,7 +96,7 @@
 
   <h3>Cara membuat reservasi</h3>
   <ol class="checks">
-    <li>Hubungi petugas unit untuk memilih tanggal dan jam dialisis yang masih tersedia.</li>
+    <li>Hubungi petugas unit di <a href="https://wa.me/6287723307788" target="_blank" rel="noopener">0877-2330-7788</a> (telepon atau WhatsApp) untuk memilih tanggal dan jam yang masih tersedia.</li>
     <li>Pasien baru membawa surat pengantar dan hasil laboratorium terbaru dari Poliklinik Penyakit Dalam atau IGD.</li>
     <li>Datang 30 menit sebelum jam reservasi untuk pendaftaran, penimbangan, dan pemeriksaan awal.</li>
   </ol>
@@ -171,7 +178,7 @@
       <button id="buka-staf" class="btn">Buka</button>
     </div>
     <p id="pin-pesan" class="err" role="alert"></p>
-    <p class="note">PIN hanya menyembunyikan tampilan, bukan pengamanan data. Jangan pernah menaruh nama lengkap, nomor rekam medis, atau hasil laboratorium pasien di repositori publik.</p>
+    <p class="note">Menambah dan menghapus reservasi diperiksa ulang oleh server dengan PIN yang sama. Tetap gunakan inisial saja; jangan pernah memasukkan nama lengkap, nomor rekam medis, atau hasil laboratorium pasien.</p>
   </div>
 
   <div id="isi-staf" hidden>
@@ -181,6 +188,24 @@
     </div>
 
     <p id="info-codeblue" class="note"></p>
+
+    <h3>Tambah reservasi</h3>
+    <div id="form-reservasi" class="form-res">
+      <label>Tanggal<input type="date" id="res-tanggal"></label>
+      <label>Bed<select id="res-bed"></select></label>
+      <label>Jam mulai<input type="time" id="res-mulai" value="07:00"></label>
+      <label>Jam selesai<input type="time" id="res-selesai" value="11:30"></label>
+      <label>Inisial pasien<input type="text" id="res-inisial" maxlength="8" placeholder="S.M" autocomplete="off"></label>
+      <label>Akses<select id="res-akses"><option>Fistula</option><option>Kateter</option><option>Lainnya</option></select></label>
+      <label class="span2">Keterangan (opsional)<input type="text" id="res-ket" maxlength="80" placeholder="misal: pasien rujukan"></label>
+    </div>
+    <div class="ceklis-aksi">
+      <button id="simpan-res" class="btn">Simpan reservasi</button>
+      <span id="res-pesan" role="status"></span>
+    </div>
+
+    <h3>Reservasi mendatang</h3>
+    <ul class="docs" id="daftar-res"></ul>
 
     <h3>Dokumen dan SPO</h3>
     <ul class="docs" id="daftar-spo"></ul>

@@ -1,4 +1,4 @@
-const CACHE = 'hd-rssgh-v6';
+const CACHE = 'hd-rssgh-v7';
 const ASET = [
   './',
   './index.html',
@@ -19,11 +19,11 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Halaman statis: cache dulu. Data Google Sheets tidak pernah di-cache.
+// Halaman statis: cache dulu. Permintaan ke domain lain (API jadwal) tidak pernah di-cache.
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
-  if (url.hostname.includes('docs.google.com')) return;
+  if (url.origin !== self.location.origin) return;   // API jadwal, Sheets, dan font: langsung ke jaringan
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
       if (res.ok && url.origin === self.location.origin) {

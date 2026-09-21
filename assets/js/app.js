@@ -7,13 +7,15 @@ const KONFIG = {
   // Google Sheet harus dipublikasikan: File > Share > Publish to web.
   // Selama SHEET_ID kosong, papan jadwal menampilkan pesan "belum tersambung".
   // Untuk pratinjau dengan data contoh, buka situs dengan akhiran ?contoh=1
+  // URL aplikasi web Apps Script (berakhiran /exec). Lihat apps-script/Kode.gs.
+  // Bila diisi, jadwal dibaca dan ditulis lewat API ini dan SHEET_ID diabaikan.
+  API_URL: '',
   SHEET_ID: '',
   NAMA_TAB_JADWAL: 'Jadwal',   // kolom: Tanggal | Mulai | Selesai | Bed | Inisial | Akses | Keterangan
   NAMA_TAB_REKAP: 'Rekap',     // kolom: Bulan | Jumlah tindakan
   PIN_STAF: '1209',
   BED: ['Bed 1', 'Bed 2', 'Bed 3', 'Bed 4'],
   HARI_DITAMPILKAN: 7,         // jumlah tanggal ke depan pada tab Jadwal
-  TELEPON_UNIT: '',            // contoh: '(0274) 123-4567 ext. 210'. Kosongkan bila belum ada.
   INTERKOM_CODE_BLUE: '906',   // hanya tampil di Ruang staf. Pastikan sesuai nomor RS.
   SPO: [
     { kode: '016/HD/RSSGH/2026', judul: 'Pelaksanaan resusitasi code blue di Unit Hemodialisis', url: '' },
@@ -46,14 +48,20 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-const sekarang = new Date();
+let sekarang = new Date();
 const MODE_CONTOH = new URLSearchParams(location.search).has('contoh');
 
 const pad = n => String(n).padStart(2, '0');
 const isoLokal = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const tambahHari = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
-const isoHariIni = isoLokal(sekarang);
-const menitSekarang = sekarang.getHours() * 60 + sekarang.getMinutes();
+let isoHariIni = isoLokal(sekarang);
+let menitSekarang = sekarang.getHours() * 60 + sekarang.getMinutes();
+
+function perbaruiWaktu() {
+  sekarang = new Date();
+  isoHariIni = isoLokal(sekarang);
+  menitSekarang = sekarang.getHours() * 60 + sekarang.getMinutes();
+}
 
 function tanggalPanjang(d) {
   return `${HARI[d.getDay()]}, ${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
@@ -118,6 +126,33 @@ function ambilSheet(namaTab) {
            + `?tqx=out:json;responseHandler:${cb}&headers=1&sheet=${encodeURIComponent(namaTab)}`;
     document.body.appendChild(el);
   });
+}
+
+async function ambilApi() {
+  const url = KONFIG.API_URL + (KONFIG.API_URL.includes('?') ? '&' : '?')
+    + 'pin=' + encodeURIComponent(pinStaf()) + '&t=' + Date.now();
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Server jadwal tidak merespons');
+  const d = await res.json();
+  if (!d.ok) throw new Error(d.pesan || 'Server jadwal menolak permintaan');
+  return {
+    jadwal: (d.jadwal || []).map(r => ({
+      tanggal: parseTanggal(r.tanggal), mulai: parseJam(r.mulai), selesai: parseJam(r.selesai),
+      bed: normBed(r.bed), inisial: r.inisial || '', akses: r.akses || '', ket: r.ket || '', id: r.id || '',
+    })).filter(r => r.tanggal && r.bed),
+    rekap: (d.rekap || []).map(x => [String(x[0]), String(x[1])]),
+  };
+}
+
+async function kirimApi(isi) {
+  const res = await fetch(KONFIG.API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // hindari preflight CORS
+    body: JSON.stringify({ ...isi, pin: pinStaf() }),
+  });
+  const d = await res.json();
+  if (!d.ok) throw new Error(d.pesan || 'Gagal menyimpan');
+  return d;
 }
 
 function barisKeReservasi(r) {
@@ -267,13 +302,26 @@ function tandaiSumberData(pesan, peringatan) {
 }
 
 async function muatData() {
+  perbaruiWaktu();
   $('#papan-sub').textContent = tanggalPanjang(sekarang);
+  $('#tanggal-hari-ini').textContent = tanggalPanjang(sekarang);
 
   if (MODE_CONTOH) {
     DATA_JADWAL = buatContoh();
     DATA_REKAP = CONTOH_REKAP;
     STATUS_DATA = 'contoh';
     tandaiSumberData('Mode pratinjau: data contoh, bukan jadwal sebenarnya.', true);
+  } else if (KONFIG.API_URL) {
+    try {
+      const d = await ambilApi();
+      DATA_JADWAL = d.jadwal;
+      DATA_REKAP = d.rekap;
+      STATUS_DATA = 'tersambung';
+      tandaiSumberData('Diperbarui langsung dari jadwal reservasi unit.', false);
+    } catch (e) {
+      STATUS_DATA = 'gagal';
+      tandaiSumberData(`Jadwal gagal dimuat: ${e.message}. Hubungi petugas unit untuk informasi slot.`, true);
+    }
   } else if (!KONFIG.SHEET_ID) {
     STATUS_DATA = 'kosong';
     tandaiSumberData('Hubungi petugas unit untuk menanyakan slot atau membuat reservasi.', false);
@@ -298,6 +346,7 @@ async function muatData() {
   hitungStatistik();
   gambarRekap();
   pasangPilihTanggal();
+  gambarDaftarRes();
 }
 
 function tanggalTerpilih() {
@@ -306,13 +355,14 @@ function tanggalTerpilih() {
 
 function pasangPilihTanggal() {
   const wrap = $('#pilih-hari');
+  const terpilih = $('[aria-pressed="true"]', wrap)?.dataset.iso || isoHariIni;
   wrap.innerHTML = '';
   for (let h = 0; h < KONFIG.HARI_DITAMPILKAN; h++) {
     const d = tambahHari(sekarang, h);
     const b = document.createElement('button');
     b.className = 'day';
     b.dataset.iso = isoLokal(d);
-    b.setAttribute('aria-pressed', h === 0 ? 'true' : 'false');
+    b.setAttribute('aria-pressed', b.dataset.iso === terpilih ? 'true' : 'false');
     b.textContent = h === 0 ? `Hari ini, ${d.getDate()}` : `${HARI[d.getDay()].slice(0, 3)} ${d.getDate()}`;
     b.addEventListener('click', () => {
       $$('.day', wrap).forEach(x => x.setAttribute('aria-pressed', 'false'));
@@ -321,14 +371,12 @@ function pasangPilihTanggal() {
     });
     wrap.appendChild(b);
   }
-  gambarPapan($('#jadwal-isi'), isoHariIni, staffTerbuka());
+  if (!$('[aria-pressed="true"]', wrap)) wrap.firstChild.setAttribute('aria-pressed', 'true');
+  gambarPapan($('#jadwal-isi'), tanggalTerpilih(), staffTerbuka());
 }
 
 /* ---------------- kontak ---------------- */
 
-if (KONFIG.TELEPON_UNIT) {
-  $('#kontak-unit').innerHTML = `Telepon unit: <strong>${esc(KONFIG.TELEPON_UNIT)}</strong>`;
-}
 
 /* ---------------- navigasi tab ---------------- */
 
@@ -344,7 +392,8 @@ $$('.tab').forEach(t => {
 
 /* ---------------- ruang staf ---------------- */
 
-const staffTerbuka = () => sessionStorage.getItem('hd_staf') === '1';
+const pinStaf = () => { try { return sessionStorage.getItem('hd_staf') || ''; } catch (e) { return ''; } };
+const staffTerbuka = () => !!pinStaf();
 
 function bukaStaf() {
   $('#gerbang-staf').hidden = true;
@@ -352,6 +401,8 @@ function bukaStaf() {
   gambarSPO();
   gambarCeklis();
   gambarRekap();
+  siapkanFormRes();
+  gambarDaftarRes();
   $('#info-codeblue').innerHTML = KONFIG.INTERKOM_CODE_BLUE
     ? `Kegawatdaruratan di dalam rumah sakit: interkom <strong>${esc(KONFIG.INTERKOM_CODE_BLUE)}</strong> (aktivasi <em>code blue</em>).`
     : '';
@@ -363,10 +414,11 @@ function bukaStaf() {
 
 $('#buka-staf').addEventListener('click', () => {
   if ($('#pin').value === KONFIG.PIN_STAF) {
-    sessionStorage.setItem('hd_staf', '1');
+    try { sessionStorage.setItem('hd_staf', $('#pin').value); } catch (e) {}
     $('#pin-pesan').textContent = '';
     $('#pin').value = '';
     bukaStaf();
+    if (KONFIG.API_URL) muatData();   // muat ulang agar inisial ikut terkirim
   } else {
     $('#pin-pesan').textContent = 'PIN belum cocok. Tanyakan kepada penanggung jawab unit.';
   }
@@ -374,12 +426,86 @@ $('#buka-staf').addEventListener('click', () => {
 $('#pin').addEventListener('keydown', e => { if (e.key === 'Enter') $('#buka-staf').click(); });
 
 $('#kunci-staf').addEventListener('click', () => {
-  sessionStorage.removeItem('hd_staf');
+  try { sessionStorage.removeItem('hd_staf'); } catch (e) {}
   $('#isi-staf').hidden = true;
   $('#gerbang-staf').hidden = false;
   gambarPapan($('#papan-isi'), isoHariIni, false);
   gambarPapan($('#jadwal-isi'), tanggalTerpilih(), false);
 });
+
+/* reservasi (staf) */
+
+function siapkanFormRes() {
+  const sel = $('#res-bed');
+  if (!sel.options.length) KONFIG.BED.forEach(b => sel.add(new Option(b, b)));
+  if (!$('#res-tanggal').value) $('#res-tanggal').value = isoHariIni;
+  const aktif = !!KONFIG.API_URL;
+  $$('#form-reservasi input, #form-reservasi select, #simpan-res').forEach(el => { el.disabled = !aktif; });
+  if (!aktif) pesanRes('Form aktif setelah API_URL Apps Script diisi pada assets/js/app.js.', 'err', true);
+}
+
+function pesanRes(t, jenis, tetap) {
+  const el = $('#res-pesan');
+  el.textContent = t;
+  el.className = jenis || '';
+  clearTimeout(pesanRes.t);
+  if (!tetap) pesanRes.t = setTimeout(() => { el.textContent = ''; }, 6000);
+}
+
+$('#simpan-res').addEventListener('click', async () => {
+  const data = {
+    tanggal: $('#res-tanggal').value, bed: $('#res-bed').value,
+    mulai: $('#res-mulai').value, selesai: $('#res-selesai').value,
+    inisial: $('#res-inisial').value.trim(), akses: $('#res-akses').value, ket: $('#res-ket').value.trim(),
+  };
+  if (!data.tanggal || !data.mulai || !data.selesai) return pesanRes('Isi tanggal, jam mulai, dan jam selesai.', 'err');
+  if (data.selesai <= data.mulai) return pesanRes('Jam selesai harus setelah jam mulai.', 'err');
+  if (!data.inisial) return pesanRes('Isi inisial pasien.', 'err');
+  const btn = $('#simpan-res');
+  btn.disabled = true; btn.textContent = 'Menyimpan…';
+  try {
+    await kirimApi({ aksi: 'tambah', data });
+    pesanRes(`Reservasi ${data.bed} ${data.mulai.replace(':', '.')}–${data.selesai.replace(':', '.')} tersimpan.`, 'ok');
+    $('#res-inisial').value = ''; $('#res-ket').value = '';
+    await muatData();
+  } catch (e) {
+    pesanRes(e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Simpan reservasi';
+  }
+});
+
+function gambarDaftarRes() {
+  const ul = $('#daftar-res');
+  if (!ul || !staffTerbuka()) return;
+  ul.innerHTML = '';
+  if (!KONFIG.API_URL) { ul.innerHTML = '<li class="note">Belum tersambung ke Apps Script.</li>'; return; }
+  const rows = DATA_JADWAL
+    .filter(r => r.tanggal > isoHariIni || (r.tanggal === isoHariIni && (r.selesai ?? 0) > menitSekarang))
+    .sort((a, b) => a.tanggal.localeCompare(b.tanggal) || (a.mulai ?? 0) - (b.mulai ?? 0));
+  if (!rows.length) { ul.innerHTML = '<li class="note">Belum ada reservasi mendatang.</li>'; return; }
+  rows.forEach(r => {
+    const [y, m, d] = r.tanggal.split('-').map(Number);
+    const tgl = new Date(y, m - 1, d);
+    const li = document.createElement('li');
+    li.innerHTML = `<span><b>${HARI[tgl.getDay()].slice(0, 3)} ${d} ${BULAN[m - 1].slice(0, 3)}</b>, `
+      + `${formatJam(r.mulai)}–${formatJam(r.selesai)}, ${esc(KONFIG.BED.find(b => normBed(b) === r.bed) || r.bed)}`
+      + `<br><span class="kode">${esc(r.inisial)}${r.akses ? ', ' + esc(r.akses) : ''}${r.ket ? ', ' + esc(r.ket) : ''}</span></span>`;
+    if (r.id) {
+      const b = document.createElement('button');
+      b.className = 'hapus';
+      b.textContent = 'Hapus';
+      b.addEventListener('click', async () => {
+        if (!confirm(`Hapus reservasi ${r.inisial} pada ${d} ${BULAN[m - 1]}, ${formatJam(r.mulai)}?`)) return;
+        b.disabled = true; b.textContent = 'Menghapus…';
+        try { await kirimApi({ aksi: 'hapus', id: r.id }); pesanRes('Reservasi dihapus.', 'ok'); await muatData(); }
+        catch (e) { pesanRes(e.message, 'err'); b.disabled = false; b.textContent = 'Hapus'; }
+      });
+      li.appendChild(b);
+    }
+    ul.appendChild(li);
+  });
+}
 
 function gambarSPO() {
   const ul = $('#daftar-spo');
@@ -463,6 +589,7 @@ function pesanCeklis(t) {
 $('#tanggal-hari-ini').textContent = tanggalPanjang(sekarang);
 if (staffTerbuka()) bukaStaf();
 muatData();
+if (KONFIG.API_URL) setInterval(() => { if (!document.hidden) muatData(); }, 120000);   // segarkan tiap 2 menit
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
