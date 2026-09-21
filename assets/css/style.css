@@ -274,3 +274,17 @@ body{padding-bottom:84px}
 @keyframes naik{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 @keyframes pudar{from{opacity:0}to{opacity:1}}
 @keyframes denyut{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(1.35);opacity:0}}
+
+/* kartu promo */
+.promo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;
+  padding:14px 18px;border-radius:10px;text-decoration:none;color:#fff;
+  background:linear-gradient(100deg,var(--blue-deep),var(--blue))}
+.promo[hidden]{display:none}
+.promo-teks{display:flex;flex-direction:column;line-height:1.35}
+.promo-teks strong{font-family:var(--serif);font-size:1.1rem}
+.promo-teks span{font-size:.84rem;color:#C5DBF0}
+.promo-aksi{flex:none;background:#fff;color:var(--blue-deep);font-weight:600;font-size:.86rem;padding:7px 14px;border-radius:999px}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .promo{transition:transform .2s ease,box-shadow .2s ease}
+  .promo:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(14,59,107,.22)}
+}

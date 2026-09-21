@@ -16,6 +16,8 @@ const KONFIG = {
   PIN_STAF: '1209',
   BED: ['Bed 1', 'Bed 2', 'Bed 3', 'Bed 4'],
   HARI_DITAMPILKAN: 7,         // jumlah tanggal ke depan pada tab Jadwal
+  // Kartu promo di Beranda otomatis hilang setelah tanggal BATAS. Kosongkan URL untuk menyembunyikan.
+  PROMO: { URL: 'https://sedayugeneralhospital.com/promo/promo-hemodialisis-8eO6U', BATAS: '2026-09-30' },
   INTERKOM_CODE_BLUE: '906',   // hanya tampil di Ruang staf. Pastikan sesuai nomor RS.
   SPO: [
     { kode: '016/HD/RSSGH/2026', judul: 'Pelaksanaan resusitasi code blue di Unit Hemodialisis', url: '' },
@@ -600,11 +602,25 @@ function pesanCeklis(t) {
   setTimeout(() => { el.textContent = ''; }, 4000);
 }
 
+/* ---------------- promo ---------------- */
+
+(function tampilkanPromo() {
+  const p = KONFIG.PROMO || {};
+  const el = $('#promo-hd');
+  if (!el || !p.URL || (p.BATAS && isoHariIni > p.BATAS)) return;
+  el.href = p.URL;
+  if (p.BATAS) {
+    const [y, m, d] = p.BATAS.split('-').map(Number);
+    $('#promo-batas').textContent = `Berlaku sampai ${d} ${BULAN[m - 1]} ${y}`;
+  }
+  el.hidden = false;
+})();
+
 /* ---------------- animasi muncul saat digulir ---------------- */
 
 if (GERAK && 'IntersectionObserver' in window) {
   document.documentElement.classList.add('anim');
-  const target = '.stats, .two-col > div, #panel-jadwal > h3, #panel-jadwal > .checks, .flow li, .checks, .edu, .warn, .gate, .kaki';
+  const target = '.promo, .stats, .two-col > div, #panel-jadwal > h3, #panel-jadwal > .checks, .flow li, .checks, .edu, .warn, .gate, .kaki';
   const io = new IntersectionObserver(entri => {
     entri.forEach(e => { if (e.isIntersecting) { e.target.classList.add('tampil'); io.unobserve(e.target); } });
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
