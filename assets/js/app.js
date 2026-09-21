@@ -1,5 +1,5 @@
 /* =========================================================
-   Unit Hemodialisa — RS Sedayu General Hospital
+   Unit Hemodialisis — RS Sedayu General Hospital
    Isi bagian KONFIG di bawah, sisanya tidak perlu diubah.
    ========================================================= */
 
@@ -16,7 +16,7 @@ const KONFIG = {
   TELEPON_UNIT: '',            // contoh: '(0274) 123-4567 ext. 210'. Kosongkan bila belum ada.
   INTERKOM_CODE_BLUE: '906',   // hanya tampil di Ruang staf. Pastikan sesuai nomor RS.
   SPO: [
-    { kode: '016/HD/RSSGH/2026', judul: 'Pelaksanaan resusitasi code blue di Unit Hemodialisa', url: '' },
+    { kode: '016/HD/RSSGH/2026', judul: 'Pelaksanaan resusitasi code blue di Unit Hemodialisis', url: '' },
     { kode: '……/HD/RSSGH/2026', judul: 'Persiapan mesin dan priming dializer', url: '' },
     { kode: '……/HD/RSSGH/2026', judul: 'Pemasangan dan perawatan akses vaskuler', url: '' },
     { kode: '……/HD/RSSGH/2026', judul: 'Penanganan hipotensi intradialitik', url: '' },
@@ -432,7 +432,7 @@ function gambarCeklis() {
 
 $('#salin-ceklis').addEventListener('click', async () => {
   const d = bacaCeklis();
-  const baris = [`Ceklis Unit Hemodialisa — ${tanggalPanjang(sekarang)}`];
+  const baris = [`Ceklis Unit Hemodialisis — ${tanggalPanjang(sekarang)}`];
   KONFIG.CEKLIS.forEach((g, gi) => {
     baris.push('', g.judul);
     g.butir.forEach((b, bi) => baris.push(`${d['c' + gi + '_' + bi] ? '[v]' : '[ ]'} ${b}`));

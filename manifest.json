@@ -1,7 +1,7 @@
 {
-  "name": "Unit Hemodialisa RS Sedayu General Hospital",
+  "name": "Unit Hemodialisis RS Sedayu General Hospital",
   "short_name": "HD RSSGH",
-  "description": "Jadwal, alur pelayanan, edukasi pasien, dan ruang staf Unit Hemodialisa.",
+  "description": "Jadwal, alur pelayanan, edukasi pasien, dan ruang staf Unit Hemodialisis.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

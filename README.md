@@ -1,4 +1,4 @@
-# Unit Hemodialisa — RS Sedayu General Hospital
+# Unit Hemodialisis — RS Sedayu General Hospital
 
 Situs statis untuk GitHub Pages. Satu halaman dengan lima tab: Beranda, Jadwal, Alur & persiapan, Edukasi, dan Ruang staf (terkunci PIN). Unit memiliki 4 bed dengan jadwal berbasis reservasi; jadwal dan rekap tindakan dapat disinkronkan dari Google Sheets.
 
@@ -81,4 +81,4 @@ Ceklis disimpan di `localStorage` peramban masing-masing perangkat, terpisah per
 
 ## Mode luring
 
-`sw.js` menyimpan halaman, gaya, dan skrip agar tetap terbuka saat jaringan mati. Data dari Google Sheets sengaja tidak di-cache agar jadwal yang tampil selalu yang terbaru. Setiap kali mengubah isi situs, naikkan versi cache pada baris `const CACHE = 'hd-rssgh-v3'` menjadi `v4`, `v5`, dan seterusnya agar perubahan langsung terlihat di perangkat pengguna.
+`sw.js` menyimpan halaman, gaya, dan skrip agar tetap terbuka saat jaringan mati. Data dari Google Sheets sengaja tidak di-cache agar jadwal yang tampil selalu yang terbaru. Setiap kali mengubah isi situs, naikkan versi cache pada baris `const CACHE = 'hd-rssgh-v4'` menjadi `v5`, `v6`, dan seterusnya agar perubahan langsung terlihat di perangkat pengguna.
