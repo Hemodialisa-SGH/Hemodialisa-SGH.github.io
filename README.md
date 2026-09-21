@@ -81,4 +81,4 @@ Ceklis disimpan di `localStorage` peramban masing-masing perangkat, terpisah per
 
 ## Mode luring
 
-`sw.js` menyimpan halaman, gaya, dan skrip agar tetap terbuka saat jaringan mati. Data dari Google Sheets sengaja tidak di-cache agar jadwal yang tampil selalu yang terbaru. Setiap kali mengubah isi situs, naikkan versi cache pada baris `const CACHE = 'hd-rssgh-v4'` menjadi `v5`, `v6`, dan seterusnya agar perubahan langsung terlihat di perangkat pengguna.
+`sw.js` menyimpan halaman, gaya, dan skrip agar tetap terbuka saat jaringan mati. Data dari Google Sheets sengaja tidak di-cache agar jadwal yang tampil selalu yang terbaru. Setiap kali mengubah isi situs, naikkan versi cache pada baris `const CACHE = 'hd-rssgh-v5'` menjadi `v6`, `v7`, dan seterusnya agar perubahan langsung terlihat di perangkat pengguna.

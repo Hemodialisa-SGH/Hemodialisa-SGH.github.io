@@ -10,7 +10,7 @@ const KONFIG = {
   SHEET_ID: '',
   NAMA_TAB_JADWAL: 'Jadwal',   // kolom: Tanggal | Mulai | Selesai | Bed | Inisial | Akses | Keterangan
   NAMA_TAB_REKAP: 'Rekap',     // kolom: Bulan | Jumlah tindakan
-  PIN_STAF: '1906',
+  PIN_STAF: '1209',
   BED: ['Bed 1', 'Bed 2', 'Bed 3', 'Bed 4'],
   HARI_DITAMPILKAN: 7,         // jumlah tanggal ke depan pada tab Jadwal
   TELEPON_UNIT: '',            // contoh: '(0274) 123-4567 ext. 210'. Kosongkan bila belum ada.
