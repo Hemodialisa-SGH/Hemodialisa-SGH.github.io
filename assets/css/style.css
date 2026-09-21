@@ -189,3 +189,25 @@ strong{font-weight:600}
 }
 .stats[hidden]{display:none}
 .is-gagal{border-left-color:var(--line)}.is-gagal .pill{background:#F1F4F7;color:var(--ink-soft)}
+
+/* animasi hover: hanya di perangkat dengan mouse, dan dimatikan bila pengguna memilih kurangi gerakan */
+.tab,.day,.btn,.bedcard,.edu,.docs li{transition:color .2s ease,background-color .2s ease,border-color .2s ease}
+@media (hover:hover){
+  .tab:hover{border-bottom-color:rgba(255,255,255,.35)}
+  .tab.is-on:hover{border-bottom-color:var(--green)}
+  .day:hover{border-color:var(--blue);color:var(--blue-deep);background:#F2F7FC}
+  .day[aria-pressed="true"]:hover{background:var(--blue);border-color:var(--blue);color:#fff}
+  .edu:hover,.docs li:hover{border-color:#B7D2EC}
+  .bedcard:hover{border-top-color:#B7D2EC;border-right-color:#B7D2EC;border-bottom-color:#B7D2EC}
+  .edu:hover{border-top-color:var(--blue)}
+}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .day,.btn,.bedcard,.edu,.docs li{transition:color .2s ease,background-color .2s ease,border-color .2s ease,transform .2s ease,box-shadow .2s ease}
+  .day:hover{transform:translateY(-2px)}
+  .bedcard:hover,.edu:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(14,59,107,.12)}
+  .docs li:hover{transform:translateX(3px)}
+  .btn:hover{transform:translateY(-1px)}
+}
+@media (prefers-reduced-motion:no-preference){
+  .day:active,.btn:active,.tab:active{transform:scale(.97)}
+}
