@@ -232,3 +232,45 @@ main a.btn-ghost{color:var(--blue-deep)}
   font-size:.82rem;padding:4px 10px;border-radius:6px;cursor:pointer}
 .docs .hapus:hover{background:#FDF4F2}
 @media (max-width:760px){.form-res{grid-template-columns:1fr}}
+
+/* ---------- animasi halaman ---------- */
+/* tombol kontak melayang */
+.melayang{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;
+  display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.fab-ugd{background:var(--red);color:#fff;text-decoration:none;font-size:.82rem;font-weight:600;
+  padding:7px 14px;border-radius:999px;box-shadow:0 4px 12px rgba(176,48,48,.3)}
+.fab-wa{position:relative;display:flex;align-items:center;gap:8px;background:#1FA855;color:#fff;text-decoration:none;
+  font-weight:600;font-size:.9rem;padding:10px 16px 10px 12px;border-radius:999px;box-shadow:0 6px 16px rgba(31,168,85,.35)}
+.fab-wa svg{flex:none}
+body{padding-bottom:84px}
+@media (max-width:760px){.fab-wa span{display:none}.fab-wa{padding:12px}}
+
+@media (prefers-reduced-motion:no-preference){
+  /* header masuk saat halaman dibuka */
+  .masthead-in > *{animation:turun .6s cubic-bezier(.2,.7,.2,1) both}
+  .masthead-text{animation-delay:.08s}
+  .clock{animation-delay:.16s}
+  .tabs{animation:pudar .6s .2s ease both}
+
+  /* elemen muncul saat digulir */
+  html.anim .reveal{opacity:0;transform:translateY(22px);
+    transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
+  html.anim .reveal.tampil{opacity:1;transform:none}
+
+  /* kartu bed muncul berurutan pada tampilan pertama */
+  .bedgrid.urut .bedcard{animation:naik .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i) * 90ms + .15s)}
+
+  /* denyut halus pada tombol WhatsApp */
+  .fab-wa::before{content:"";position:absolute;inset:0;border-radius:inherit;background:#1FA855;z-index:-1;
+    animation:denyut 2.4s ease-out infinite}
+  .fab-wa,.fab-ugd{animation:naik .5s .6s both;transition:transform .2s ease}
+  .fab-ugd{animation-delay:.7s}
+  .fab-wa:hover,.fab-ugd:hover{transform:translateY(-2px)}
+
+  /* pergantian tab */
+  .panel:not([hidden]){animation:pudar .35s ease both}
+}
+@keyframes turun{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@keyframes naik{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes pudar{from{opacity:0}to{opacity:1}}
+@keyframes denyut{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(1.35);opacity:0}}

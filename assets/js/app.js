@@ -211,6 +211,7 @@ function gambarPapan(target, iso, tampilkanInisial) {
   const rows = reservasiTanggal(iso);
   const grid = document.createElement('div');
   grid.className = 'bedgrid';
+  if (!target.dataset.tampil) { grid.classList.add('urut'); target.dataset.tampil = '1'; }
 
   KONFIG.BED.forEach(b => {
     const isi = rows.filter(r => r.bed === normBed(b));
@@ -223,6 +224,7 @@ function gambarPapan(target, iso, tampilkanInisial) {
 
     const kartu = document.createElement('article');
     kartu.className = 'bedcard is-' + kelas;
+    kartu.style.setProperty('--i', grid.children.length);
     kartu.innerHTML = `<header><h3>${esc(b)}</h3><span class="pill">${status}</span></header>`;
 
     if (aktif) {
@@ -253,6 +255,20 @@ function gambarPapan(target, iso, tampilkanInisial) {
   target.appendChild(grid);
 }
 
+// Angka statistik menghitung naik dari 0 saat pertama tampil
+const GERAK = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+function hitungNaik(el, nilai) {
+  const n = Number(nilai);
+  if (!GERAK || !Number.isFinite(n) || el.dataset.dihitung) { el.textContent = nilai; return; }
+  el.dataset.dihitung = '1';
+  const mulai = performance.now(), durasi = 900;
+  (function langkah(t) {
+    const p = Math.min((t - mulai) / durasi, 1);
+    el.textContent = Math.round(n * (1 - Math.pow(1 - p, 3)));
+    if (p < 1) requestAnimationFrame(langkah);
+  })(mulai);
+}
+
 function hitungStatistik() {
   const adaData = STATUS_DATA === 'tersambung' || STATUS_DATA === 'contoh';
   const rows = reservasiTanggal(isoHariIni);
@@ -261,12 +277,12 @@ function hitungStatistik() {
     && menitSekarang >= r.mulai && menitSekarang < r.selesai).map(r => r.bed)).size;
 
   $('.stats').hidden = !adaData;
-  $('#stat-pasien').textContent = adaData ? rows.length : '—';
-  $('#stat-mesin').textContent = adaData ? bedDipakai : '—';
+  hitungNaik($('#stat-pasien'), adaData ? rows.length : '—');
+  hitungNaik($('#stat-mesin'), adaData ? bedDipakai : '—');
   $('#stat-mesin-total').textContent = KONFIG.BED.length;
   const bulanIni = BULAN[sekarang.getMonth()];
   const rekap = DATA_REKAP.find(r => (r[0] || '').toLowerCase() === bulanIni.toLowerCase());
-  $('#stat-bulan').textContent = rekap ? rekap[1] : '—';
+  hitungNaik($('#stat-bulan'), rekap ? rekap[1] : '—');
   $('#status-bed').textContent = adaData ? `${berjalan} dari ${KONFIG.BED.length} bed sedang dipakai` : '';
 }
 
@@ -582,6 +598,22 @@ function pesanCeklis(t) {
   const el = $('#ceklis-pesan');
   el.textContent = t;
   setTimeout(() => { el.textContent = ''; }, 4000);
+}
+
+/* ---------------- animasi muncul saat digulir ---------------- */
+
+if (GERAK && 'IntersectionObserver' in window) {
+  document.documentElement.classList.add('anim');
+  const target = '.stats, .two-col > div, #panel-jadwal > h3, #panel-jadwal > .checks, .flow li, .checks, .edu, .warn, .gate, .kaki';
+  const io = new IntersectionObserver(entri => {
+    entri.forEach(e => { if (e.isIntersecting) { e.target.classList.add('tampil'); io.unobserve(e.target); } });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  $$(target).forEach(el => {
+    const saudara = Array.from(el.parentElement.children).filter(x => x.matches(target));
+    el.style.setProperty('--d', Math.min(saudara.indexOf(el), 5) * 0.08 + 's');
+    el.classList.add('reveal');
+    io.observe(el);
+  });
 }
 
 /* ---------------- jalan ---------------- */
