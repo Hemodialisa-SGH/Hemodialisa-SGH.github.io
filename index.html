@@ -27,7 +27,7 @@
     </div>
     <div class="clock">
       <p id="tanggal-hari-ini">—</p>
-      <p id="shift-berjalan" class="shift-now">—</p>
+      <p id="status-bed" class="shift-now"></p>
     </div>
   </div>
   <nav class="tabs wrap" aria-label="Navigasi utama">
@@ -54,8 +54,8 @@
   </div>
 
   <div class="grid-3 stats">
-    <div class="stat"><p class="stat-num" id="stat-pasien">—</p><p class="stat-lab">pasien terjadwal hari ini</p></div>
-    <div class="stat"><p class="stat-num" id="stat-mesin">—</p><p class="stat-lab">mesin terpakai dari <span id="stat-mesin-total">8</span></p></div>
+    <div class="stat"><p class="stat-num" id="stat-pasien">—</p><p class="stat-lab">reservasi dialisis hari ini</p></div>
+    <div class="stat"><p class="stat-num" id="stat-mesin">—</p><p class="stat-lab">bed terpakai hari ini dari <span id="stat-mesin-total">4</span></p></div>
     <div class="stat"><p class="stat-num" id="stat-bulan">—</p><p class="stat-lab">tindakan bulan ini</p></div>
   </div>
 
@@ -64,17 +64,16 @@
       <h2>Tentang unit</h2>
       <p>Unit Hemodialisa melayani terapi pengganti ginjal untuk pasien gagal ginjal kronik dan gagal ginjal akut dengan indikasi dialisis, baik pasien rutin maupun rujukan cito dari IGD dan rawat inap.</p>
       <dl class="facts">
-        <dt>Jam layanan</dt><dd>Senin–Sabtu, shift 1 pukul 06.30, shift 2 pukul 11.30, shift 3 pukul 16.30</dd>
-        <dt>Kapasitas</dt><dd>8 mesin hemodialisis, termasuk 1 mesin khusus pasien HBsAg reaktif</dd>
+        <dt>Jadwal</dt><dd>Berdasarkan reservasi. Tanggal dan jam dialisis disepakati bersama petugas unit.</dd>
+        <dt>Kapasitas</dt><dd>4 bed hemodialisis</dd>
         <dt>Tenaga</dt><dd>Dokter penanggung jawab bersertifikat HD, perawat mahir HD, dan teknisi mesin</dd>
         <dt>Pendaftaran</dt><dd>Poliklinik Penyakit Dalam atau IGD, dengan surat pengantar dan hasil laboratorium terbaru</dd>
       </dl>
     </div>
     <div>
       <h2>Kontak</h2>
-      <p>Telepon unit: <strong>(0274) 000-0000</strong> ekstensi <strong>000</strong><br>
-      Kegawatdaruratan di dalam rumah sakit: interkom <strong>906</strong> (aktivasi <em>code blue</em>)</p>
-      <p class="note">Perubahan jadwal dialisis hanya dapat dilakukan lewat petugas unit, paling lambat satu hari sebelum jadwal.</p>
+      <p id="kontak-unit">Hubungi petugas unit melalui Poliklinik Penyakit Dalam atau IGD RS Sedayu General Hospital.</p>
+      <p class="note">Reservasi baru dan perubahan jadwal dialisis dilakukan lewat petugas unit, paling lambat satu hari sebelum jadwal.</p>
     </div>
   </div>
 </section>
@@ -82,20 +81,18 @@
 <!-- ============ JADWAL ============ -->
 <section id="panel-jadwal" class="panel" hidden>
   <h2>Jadwal dialisis</h2>
-  <p class="lede">Pasien rutin dijadwalkan dua kali seminggu pada hari dan shift tetap. Pilih hari untuk melihat pemakaian mesin.</p>
+  <p class="lede">Unit tidak memakai shift tetap. Setiap sesi dialisis dijadwalkan lewat reservasi. Pilih tanggal untuk melihat pemakaian 4 bed.</p>
 
-  <div class="dayrow" id="pilih-hari" role="tablist" aria-label="Pilih hari"></div>
+  <div class="dayrow" id="pilih-hari" role="group" aria-label="Pilih tanggal"></div>
   <div id="jadwal-isi" class="board-body"></div>
+  <p class="board-foot" id="jadwal-status"></p>
 
-  <h3>Pembagian shift</h3>
-  <table class="tbl">
-    <thead><tr><th>Shift</th><th>Datang</th><th>Mulai dialisis</th><th>Selesai</th></tr></thead>
-    <tbody>
-      <tr><td>Shift 1</td><td>06.00</td><td>06.30</td><td>11.00</td></tr>
-      <tr><td>Shift 2</td><td>11.00</td><td>11.30</td><td>16.00</td></tr>
-      <tr><td>Shift 3</td><td>16.00</td><td>16.30</td><td>21.00</td></tr>
-    </tbody>
-  </table>
+  <h3>Cara membuat reservasi</h3>
+  <ol class="checks">
+    <li>Hubungi petugas unit untuk memilih tanggal dan jam dialisis yang masih tersedia.</li>
+    <li>Pasien baru membawa surat pengantar dan hasil laboratorium terbaru dari Poliklinik Penyakit Dalam atau IGD.</li>
+    <li>Datang 30 menit sebelum jam reservasi untuk pendaftaran, penimbangan, dan pemeriksaan awal.</li>
+  </ol>
   <p class="note">Durasi dialisis rata-rata 4–5 jam, termasuk penimbangan, pemasangan akses, dan observasi pasca-dialisis.</p>
 </section>
 
@@ -117,7 +114,7 @@
     <li>Bawa kartu kontrol dialisis dan obat rutin yang sedang diminum.</li>
     <li>Makan secukupnya sebelum dialisis, jangan datang dalam keadaan perut kosong.</li>
     <li>Gunakan baju berlengan longgar agar akses vaskuler mudah dijangkau.</li>
-    <li>Datang 30 menit sebelum jadwal agar penimbangan dan pemeriksaan tidak terburu-buru.</li>
+    <li>Datang 30 menit sebelum jam reservasi agar penimbangan dan pemeriksaan tidak terburu-buru.</li>
     <li>Beri tahu petugas bila sejak dialisis terakhir mengalami demam, muntah, diare, atau perdarahan.</li>
   </ul>
 </section>
@@ -183,11 +180,13 @@
       <button id="kunci-staf" class="btn btn-ghost">Kunci kembali</button>
     </div>
 
+    <p id="info-codeblue" class="note"></p>
+
     <h3>Dokumen dan SPO</h3>
     <ul class="docs" id="daftar-spo"></ul>
 
     <h3>Ceklis harian</h3>
-    <p class="lede">Tersimpan di perangkat ini per tanggal. Salin hasilnya ke buku ceklis unit di akhir shift.</p>
+    <p class="lede">Tersimpan di perangkat ini per tanggal. Salin hasilnya ke buku ceklis unit di akhir hari.</p>
     <div class="grid-2" id="ceklis"></div>
     <div class="ceklis-aksi">
       <button id="salin-ceklis" class="btn">Salin rekap ceklis</button>

@@ -47,7 +47,7 @@ h1{font-family:var(--serif);font-weight:600;font-size:1.9rem;line-height:1.15;ma
 .tab:hover{color:#fff}
 .tab.is-on{color:#fff;border-bottom-color:var(--green)}
 
-main{padding:28px 20px 48px}
+main.wrap{padding-top:28px;padding-bottom:48px}
 .panel[hidden]{display:none}
 h2{font-family:var(--serif);font-size:1.4rem;font-weight:600;margin:32px 0 8px}
 .panel > h2:first-child,.board-head h2{margin-top:0}
@@ -76,6 +76,17 @@ strong{font-weight:600}
 .bed.isolasi{background:#FBF2E4;border-color:#E6CFA5;color:var(--amber)}
 .bed b{display:block;font-weight:600;font-size:.82rem;color:inherit}
 .board-foot{margin:10px 0 0;font-size:.8rem;color:var(--ink-soft)}
+.board-foot:empty{display:none}
+.bedgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.bedcol{border:1px solid var(--line);border-radius:8px;padding:10px;background:#F7FAFC;min-width:0}
+.bedcol h3{margin:0 0 8px;font-size:.9rem;display:flex;justify-content:space-between;gap:6px}
+.bedcol h3 span{font-family:var(--mono);font-weight:400;font-size:.74rem;color:var(--ink-soft)}
+.slot{font-family:var(--mono);font-size:.78rem;line-height:1.35;background:#E8F1FA;border:1px solid #B7D2EC;
+  color:var(--blue-deep);border-radius:6px;padding:5px 8px;margin-bottom:6px}
+.slot b{font-weight:600}
+.slot.now{background:var(--blue-deep);border-color:var(--blue-deep);color:#fff}
+.slot small{display:block;font-size:.72rem;opacity:.85}
+.bedcol .kosong{font-size:.8rem;color:var(--ink-soft);margin:0}
 .board-foot.demo{color:var(--amber)}
 
 /* statistik */
@@ -94,7 +105,7 @@ strong{font-weight:600}
 .dayrow{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 16px}
 .day{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);
   font:inherit;font-size:.86rem;padding:6px 12px;border-radius:999px;cursor:pointer}
-.day.is-on{background:var(--blue-deep);border-color:var(--blue-deep);color:#fff}
+.day[aria-pressed="true"]{background:var(--blue-deep);border-color:var(--blue-deep);color:#fff}
 .tbl{border-collapse:collapse;width:100%;max-width:560px;background:var(--card);
   border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.92rem}
 .tbl th,.tbl td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--line)}
@@ -164,7 +175,9 @@ strong{font-weight:600}
   .grid-3,.grid-2,.two-col{grid-template-columns:1fr}
   .shiftrow{grid-template-columns:1fr;gap:6px}
   .bed{flex:1 1 calc(33% - 6px)}
+  .bedgrid{grid-template-columns:1fr 1fr}
 }
 @media (prefers-reduced-motion:no-preference){
   .bed{transition:background .15s ease}
 }
+.stats[hidden]{display:none}
