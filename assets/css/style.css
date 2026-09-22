@@ -288,3 +288,8 @@ body{padding-bottom:84px}
   .promo{transition:transform .2s ease,box-shadow .2s ease}
   .promo:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(14,59,107,.22)}
 }
+
+.res-aksi{display:flex;gap:6px;flex:none}
+.docs .ubah{appearance:none;border:1px solid #B7D2EC;background:#fff;color:var(--blue-deep);font:inherit;
+  font-size:.82rem;padding:4px 10px;border-radius:6px;cursor:pointer}
+.docs .ubah:hover{background:#F2F7FC}

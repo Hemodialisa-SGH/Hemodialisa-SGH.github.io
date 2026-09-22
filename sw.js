@@ -1,4 +1,4 @@
-const CACHE = 'hd-rssgh-v9';
+const CACHE = 'hd-rssgh-v10';
 const ASET = [
   './',
   './index.html',

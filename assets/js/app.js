@@ -15,6 +15,7 @@ const KONFIG = {
   NAMA_TAB_REKAP: 'Rekap',     // kolom: Bulan | Jumlah tindakan
   PIN_STAF: '1209',
   BED: ['Bed 1', 'Bed 2', 'Bed 3', 'Bed 4'],
+  BED_TAMBAHAN: ['Xtra'],       // bed cadangan: bisa dipilih di form, tidak dijadikan kartu
   HARI_DITAMPILKAN: 7,         // jumlah tanggal ke depan pada tab Jadwal
   // Kartu promo di Beranda otomatis hilang setelah tanggal BATAS. Kosongkan URL untuk menyembunyikan.
   PROMO: { URL: 'https://sedayugeneralhospital.com/promo/promo-hemodialisis-8eO6U', BATAS: '2026-09-30' },
@@ -140,7 +141,8 @@ async function ambilApi() {
   return {
     jadwal: (d.jadwal || []).map(r => ({
       tanggal: parseTanggal(r.tanggal), mulai: parseJam(r.mulai), selesai: parseJam(r.selesai),
-      bed: normBed(r.bed), inisial: r.inisial || '', akses: r.akses || '', ket: r.ket || '', id: r.id || '',
+      bed: normBed(r.bed), inisial: r.inisial || '', nama: r.nama || '', status: r.status || '',
+      rs: r.rs || '', alamat: r.alamat || '', ket: r.ket || '', id: r.id || '',
     })).filter(r => r.tanggal && r.bed),
     rekap: (d.rekap || []).map(x => [String(x[0]), String(x[1])]),
   };
@@ -242,8 +244,8 @@ function gambarPapan(target, iso, tampilkanInisial) {
       lainnya.forEach(r => {
         const lewat = iso === isoHariIni && r.selesai !== null && r.selesai <= menitSekarang;
         const siapa = tampilkanInisial ? (r.inisial ? ' · ' + esc(r.inisial) : '') : '';
-        const detail = tampilkanInisial && (r.akses || r.ket)
-          ? `<small>${esc([r.akses, r.ket].filter(Boolean).join(' · '))}</small>` : '';
+        const detail = tampilkanInisial && (r.status || r.rs)
+          ? `<small>${esc([r.status, r.rs].filter(Boolean).join(' · '))}</small>` : '';
         ul.insertAdjacentHTML('beforeend',
           `<li${lewat ? ' class="lewat"' : ''}><b>${formatJam(r.mulai)}–${formatJam(r.selesai)}</b>${siapa}${lewat ? ' (selesai)' : ''}${detail}</li>`);
       });
@@ -453,9 +455,12 @@ $('#kunci-staf').addEventListener('click', () => {
 
 /* reservasi (staf) */
 
+let EDIT_ID = '';
+const SEMUA_BED = () => KONFIG.BED.concat(KONFIG.BED_TAMBAHAN || []);
+
 function siapkanFormRes() {
   const sel = $('#res-bed');
-  if (!sel.options.length) KONFIG.BED.forEach(b => sel.add(new Option(b, b)));
+  if (!sel.options.length) SEMUA_BED().forEach(b => sel.add(new Option(b, b)));
   if (!$('#res-tanggal').value) $('#res-tanggal').value = isoHariIni;
   const aktif = !!KONFIG.API_URL;
   $$('#form-reservasi input, #form-reservasi select, #simpan-res').forEach(el => { el.disabled = !aktif; });
@@ -470,26 +475,54 @@ function pesanRes(t, jenis, tetap) {
   if (!tetap) pesanRes.t = setTimeout(() => { el.textContent = ''; }, 6000);
 }
 
+function kosongkanForm() {
+  EDIT_ID = '';
+  ['#res-nama', '#res-rs', '#res-alamat', '#res-ket'].forEach(x => { $(x).value = ''; });
+  $('#judul-form').textContent = 'Tambah reservasi';
+  $('#simpan-res').textContent = 'Simpan reservasi';
+  $('#batal-res').hidden = true;
+}
+
+function isiForm(r) {
+  EDIT_ID = r.id;
+  $('#res-tanggal').value = r.tanggal;
+  $('#res-bed').value = SEMUA_BED().find(b => normBed(b) === r.bed) || 'Bed 1';
+  $('#res-mulai').value = formatJam(r.mulai).replace('.', ':');
+  $('#res-selesai').value = formatJam(r.selesai).replace('.', ':');
+  $('#res-nama').value = r.nama;
+  $('#res-status').value = r.status || 'Pasien Rutin';
+  $('#res-rs').value = r.rs; $('#res-alamat').value = r.alamat; $('#res-ket').value = r.ket;
+  $('#judul-form').textContent = 'Ubah reservasi';
+  $('#simpan-res').textContent = 'Simpan perubahan';
+  $('#batal-res').hidden = false;
+  $('#form-reservasi').scrollIntoView({ behavior: GERAK ? 'smooth' : 'auto', block: 'center' });
+}
+
+$('#batal-res').addEventListener('click', () => { kosongkanForm(); pesanRes('Perubahan dibatalkan.', ''); });
+
 $('#simpan-res').addEventListener('click', async () => {
   const data = {
     tanggal: $('#res-tanggal').value, bed: $('#res-bed').value,
     mulai: $('#res-mulai').value, selesai: $('#res-selesai').value,
-    inisial: $('#res-inisial').value.trim(), akses: $('#res-akses').value, ket: $('#res-ket').value.trim(),
+    nama: $('#res-nama').value.trim(), status: $('#res-status').value,
+    rs: $('#res-rs').value.trim(), alamat: $('#res-alamat').value.trim(),
+    ket: $('#res-ket').value.trim(), petugas: $('#res-petugas').value.trim(),
   };
   if (!data.tanggal || !data.mulai || !data.selesai) return pesanRes('Isi tanggal, jam mulai, dan jam selesai.', 'err');
   if (data.selesai <= data.mulai) return pesanRes('Jam selesai harus setelah jam mulai.', 'err');
-  if (!data.inisial) return pesanRes('Isi inisial pasien.', 'err');
-  const btn = $('#simpan-res');
+  if (!data.nama) return pesanRes('Isi nama pasien.', 'err');
+  const btn = $('#simpan-res'), teksLama = btn.textContent;
   btn.disabled = true; btn.textContent = 'Menyimpan…';
   try {
-    await kirimApi({ aksi: 'tambah', data });
-    pesanRes(`Reservasi ${data.bed} ${data.mulai.replace(':', '.')}–${data.selesai.replace(':', '.')} tersimpan.`, 'ok');
-    $('#res-inisial').value = ''; $('#res-ket').value = '';
+    await kirimApi(EDIT_ID ? { aksi: 'ubah', id: EDIT_ID, data } : { aksi: 'tambah', data });
+    pesanRes(`${EDIT_ID ? 'Perubahan' : 'Reservasi'} ${data.bed} ${data.mulai.replace(':', '.')}–${data.selesai.replace(':', '.')} tersimpan.`, 'ok');
+    kosongkanForm();
     await muatData();
   } catch (e) {
     pesanRes(e.message, 'err');
+    btn.textContent = teksLama;
   } finally {
-    btn.disabled = false; btn.textContent = 'Simpan reservasi';
+    btn.disabled = false;
   }
 });
 
@@ -507,19 +540,27 @@ function gambarDaftarRes() {
     const tgl = new Date(y, m - 1, d);
     const li = document.createElement('li');
     li.innerHTML = `<span><b>${HARI[tgl.getDay()].slice(0, 3)} ${d} ${BULAN[m - 1].slice(0, 3)}</b>, `
-      + `${formatJam(r.mulai)}–${formatJam(r.selesai)}, ${esc(KONFIG.BED.find(b => normBed(b) === r.bed) || r.bed)}`
-      + `<br><span class="kode">${esc(r.inisial)}${r.akses ? ', ' + esc(r.akses) : ''}${r.ket ? ', ' + esc(r.ket) : ''}</span></span>`;
+      + `${formatJam(r.mulai)}–${formatJam(r.selesai)}, ${esc(SEMUA_BED().find(b => normBed(b) === r.bed) || r.bed)}`
+      + `<br><span class="kode">${esc(r.inisial || r.nama)}${r.status ? ', ' + esc(r.status) : ''}`
+      + `${r.rs ? ', ' + esc(r.rs) : ''}${r.ket ? ', ' + esc(r.ket) : ''}</span></span>`;
     if (r.id) {
+      const aksi = document.createElement('span');
+      aksi.className = 'res-aksi';
+      const u = document.createElement('button');
+      u.className = 'ubah';
+      u.textContent = 'Ubah';
+      u.addEventListener('click', () => isiForm(r));
       const b = document.createElement('button');
       b.className = 'hapus';
       b.textContent = 'Hapus';
       b.addEventListener('click', async () => {
-        if (!confirm(`Hapus reservasi ${r.inisial} pada ${d} ${BULAN[m - 1]}, ${formatJam(r.mulai)}?`)) return;
+        if (!confirm(`Hapus reservasi ${r.inisial || r.nama} pada ${d} ${BULAN[m - 1]}, ${formatJam(r.mulai)}?`)) return;
         b.disabled = true; b.textContent = 'Menghapus…';
         try { await kirimApi({ aksi: 'hapus', id: r.id }); pesanRes('Reservasi dihapus.', 'ok'); await muatData(); }
         catch (e) { pesanRes(e.message, 'err'); b.disabled = false; b.textContent = 'Hapus'; }
       });
-      li.appendChild(b);
+      aksi.append(u, b);
+      li.appendChild(aksi);
     }
     ul.appendChild(li);
   });

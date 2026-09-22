@@ -184,7 +184,7 @@
       <button id="buka-staf" class="btn">Buka</button>
     </div>
     <p id="pin-pesan" class="err" role="alert"></p>
-    <p class="note">Menambah dan menghapus reservasi diperiksa ulang oleh server dengan PIN yang sama. Tetap gunakan inisial saja; jangan pernah memasukkan nama lengkap, nomor rekam medis, atau hasil laboratorium pasien.</p>
+    <p class="note">Data pasien disimpan di Google Sheet unit yang bersifat privat, bukan di situs ini. Setiap penyimpanan diperiksa PIN-nya di server, dan PIN diblokir sementara setelah 5 kali salah. Pengunjung umum hanya melihat bed terisi atau kosong.</p>
   </div>
 
   <div id="isi-staf" hidden>
@@ -195,18 +195,22 @@
 
     <p id="info-codeblue" class="note"></p>
 
-    <h3>Tambah reservasi</h3>
+    <h3 id="judul-form">Tambah reservasi</h3>
     <div id="form-reservasi" class="form-res">
       <label>Tanggal<input type="date" id="res-tanggal"></label>
       <label>Bed<select id="res-bed"></select></label>
       <label>Jam mulai<input type="time" id="res-mulai" value="07:00"></label>
       <label>Jam selesai<input type="time" id="res-selesai" value="11:30"></label>
-      <label>Inisial pasien<input type="text" id="res-inisial" maxlength="8" placeholder="S.M" autocomplete="off"></label>
-      <label>Akses<select id="res-akses"><option>Fistula</option><option>Kateter</option><option>Lainnya</option></select></label>
-      <label class="span2">Keterangan (opsional)<input type="text" id="res-ket" maxlength="80" placeholder="misal: pasien rujukan"></label>
+      <label class="span2">Nama pasien<input type="text" id="res-nama" maxlength="60" placeholder="Tn Budi S" autocomplete="off"></label>
+      <label>Status pasien<select id="res-status"><option>Pasien Baru</option><option>Pasien Rutin</option></select></label>
+      <label>RS perujuk<input type="text" id="res-rs" maxlength="40" placeholder="misal: RS Panti Rapih"></label>
+      <label class="span2">Alamat (opsional)<input type="text" id="res-alamat" maxlength="60" placeholder="misal: Gamping, Sleman"></label>
+      <label class="span2">Keterangan (opsional)<input type="text" id="res-ket" maxlength="200" placeholder="misal: akses CDL, cek HB ulang"></label>
+      <label>Diisi oleh (opsional)<input type="text" id="res-petugas" maxlength="30" placeholder="nama petugas"></label>
     </div>
     <div class="ceklis-aksi">
       <button id="simpan-res" class="btn">Simpan reservasi</button>
+      <button id="batal-res" class="btn btn-ghost" hidden>Batal</button>
       <span id="res-pesan" role="status"></span>
     </div>
 
