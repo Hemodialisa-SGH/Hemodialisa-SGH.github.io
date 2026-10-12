@@ -381,3 +381,42 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 .masthead{box-shadow:0 0 0 rgba(10,35,64,0)}
 @media (prefers-reduced-motion:no-preference){.masthead{transition:box-shadow .25s ease}}
 .masthead.ringkas{box-shadow:0 6px 18px rgba(10,35,64,.22)}
+
+/* ======================================================================
+   Kartu bergaya portal: lencana ikon bulat, isi rata tengah, sorotan terangkat
+   ====================================================================== */
+.edu{text-align:center;border-top:0;border-radius:14px;padding:26px 20px 22px;
+  box-shadow:0 1px 2px rgba(14,59,107,.06)}
+.edu-ikon{display:grid;place-items:center;width:72px;height:72px;border-radius:50%;margin:0 auto 14px}
+.edu-ikon svg{display:block}
+.edu h3{font-family:var(--serif);font-size:1.22rem;margin:0 0 10px}
+.edu p{max-width:none;font-size:.93rem}
+.edu .tip{border-left:0;padding:12px 14px;margin-top:14px;border-radius:10px;background:#F4F8FB;
+  text-align:left;font-size:.86rem}
+
+/* warna lencana per topik, mengikuti makna isinya */
+.ik-cairan{background:#E4EFFB;color:#1B5FA8}
+.ik-kalium{background:#FDE7E4;color:#C0392B}
+.ik-akses{background:#FCF1DC;color:#B5751A}
+.ik-obat{background:#E4F3E2;color:#3C7E31}
+
+@media (prefers-reduced-motion:no-preference){
+  .edu-ikon{transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s ease}
+}
+@media (hover:hover){
+  .edu:hover .tip{background:#EDF4FA}
+}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .edu{transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s ease,border-color .2s ease}
+  .edu:hover{transform:translateY(-8px);box-shadow:0 18px 34px rgba(14,59,107,.16);border-color:#C9DDEE}
+  .edu:hover .edu-ikon{transform:scale(1.09);box-shadow:0 8px 18px rgba(14,59,107,.14)}
+}
+
+@media (max-width:760px){
+  .edu{padding:22px 18px 18px}
+  .edu-ikon{width:62px;height:62px}
+}
+
+/* samakan bahasa kartu di seluruh halaman agar terbaca sebagai satu sistem */
+.board,.stat,.bedcard,.gate,.ceklis-card,.docs li,.form-res{border-radius:14px}
+.board,.stat,.gate,.ceklis-card{box-shadow:0 1px 2px rgba(14,59,107,.06)}
