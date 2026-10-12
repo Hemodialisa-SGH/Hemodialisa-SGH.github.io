@@ -208,6 +208,52 @@ const reservasiTanggal = iso => DATA_JADWAL
 const sedangBerjalan = (r, iso) => iso === isoHariIni && r.mulai !== null && r.selesai !== null
   && menitSekarang >= r.mulai && menitSekarang < r.selesai;
 
+/* Kemajuan sesi dialisis yang sedang berjalan — dipakai bar progres pada kartu bed. */
+function persenSesi(r) {
+  const total = r.selesai - r.mulai;
+  if (!(total > 0)) return 0;
+  return Math.max(0, Math.min(100, Math.round((menitSekarang - r.mulai) / total * 100)));
+}
+
+function sisaTeks(r) {
+  const sisa = Math.max(0, r.selesai - menitSekarang);
+  const j = Math.floor(sisa / 60), m = sisa % 60;
+  const lama = j ? `${j} jam${m ? ' ' + m + ' menit' : ''}` : `${m} menit`;
+  return `${persenSesi(r)}% berjalan · sisa ${lama}`;
+}
+
+/* Kerangka sementara selagi jadwal dimuat, agar papan tidak tampak kosong. */
+function gambarKerangka(target) {
+  target.innerHTML = '<div class="bedgrid">'
+    + KONFIG.BED.map(b => `<article class="bedcard rangka"><header><h3>${esc(b)}</h3>`
+      + '<span class="pill kilau">&nbsp;</span></header><p class="baris kilau"></p></article>').join('')
+    + '</div>';
+}
+
+/* Perbarui bar progres tanpa menggambar ulang kartu, agar sorotan mouse tidak terputus. */
+function perbaruiProgres() {
+  perbaruiWaktu();
+  let adaPerubahan = false;
+  $$('.bedcard[data-mulai]').forEach(k => {
+    const r = { mulai: Number(k.dataset.mulai), selesai: Number(k.dataset.selesai) };
+    if (menitSekarang >= r.selesai || menitSekarang < r.mulai) { adaPerubahan = true; return; }
+    const bar = $('.maju i', k);
+    if (bar) bar.style.setProperty('--p', persenSesi(r) + '%');
+    const maju = $('.maju', k);
+    if (maju) maju.setAttribute('aria-valuenow', persenSesi(r));
+    const sisa = $('.bed-sisa', k);
+    if (sisa) sisa.textContent = sisaTeks(r);
+  });
+  // Sesi baru dimulai atau sesi lama berakhir: gambar ulang papan sepenuhnya.
+  const seharusnya = reservasiTanggal(isoHariIni).filter(r => sedangBerjalan(r, isoHariIni)).length;
+  const terpasang = $$('#papan-isi .bedcard[data-mulai]').length;
+  if (adaPerubahan || seharusnya !== terpasang) {
+    gambarPapan($('#papan-isi'), isoHariIni, staffTerbuka());
+    hitungStatistik();
+    if (tanggalTerpilih() === isoHariIni) gambarPapan($('#jadwal-isi'), isoHariIni, staffTerbuka());
+  }
+}
+
 // Satu kartu per bed. Hari ini: status Terisi/Kosong mengikuti jam sekarang.
 // Tanggal lain: Kosong bila tanpa reservasi, selain itu jumlah reservasinya.
 function gambarPapan(target, iso, tampilkanInisial) {
@@ -234,7 +280,13 @@ function gambarPapan(target, iso, tampilkanInisial) {
     if (aktif) {
       const siapa = tampilkanInisial && aktif.inisial ? ` · ${esc(aktif.inisial)}` : '';
       kartu.insertAdjacentHTML('beforeend',
-        `<p class="bed-now">Dialisis berjalan sampai ${formatJam(aktif.selesai)}${siapa}</p>`);
+        `<p class="bed-now">Dialisis berjalan sampai ${formatJam(aktif.selesai)}${siapa}</p>`
+        + `<div class="maju" role="progressbar" aria-label="Kemajuan sesi dialisis"`
+        + ` aria-valuemin="0" aria-valuemax="100" aria-valuenow="${persenSesi(aktif)}">`
+        + `<i style="--p:${persenSesi(aktif)}%"></i></div>`
+        + `<p class="bed-sisa">${sisaTeks(aktif)}</p>`);
+      kartu.dataset.mulai = aktif.mulai;
+      kartu.dataset.selesai = aktif.selesai;
     }
 
     const lainnya = isi.filter(r => r !== aktif);
@@ -325,6 +377,7 @@ async function muatData() {
   perbaruiWaktu();
   $('#papan-sub').textContent = tanggalPanjang(sekarang);
   $('#tanggal-hari-ini').textContent = tanggalPanjang(sekarang);
+  if (STATUS_DATA === 'memuat') gambarKerangka($('#papan-isi'));
 
   if (MODE_CONTOH) {
     DATA_JADWAL = buatContoh();
@@ -400,15 +453,43 @@ function pasangPilihTanggal() {
 
 /* ---------------- navigasi tab ---------------- */
 
+const URUT_TAB = $$('.tab').map(t => t.dataset.panel);
+let tabSekarang = 0;
+
 $$('.tab').forEach(t => {
   t.addEventListener('click', () => {
+    const tujuan = URUT_TAB.indexOf(t.dataset.panel);
+    if (tujuan === tabSekarang) return;
+    const arah = tujuan > tabSekarang ? 'kanan' : 'kiri';
+    tabSekarang = tujuan;
+
     $$('.tab').forEach(x => x.classList.remove('is-on'));
     t.classList.add('is-on');
-    $$('.panel').forEach(p => { p.hidden = true; });
-    $('#panel-' + t.dataset.panel).hidden = false;
+    $$('.panel').forEach(p => { p.hidden = true; p.classList.remove('dari-kanan', 'dari-kiri'); });
+
+    const panel = $('#panel-' + t.dataset.panel);
+    panel.hidden = false;
+    // Paksa hitung ulang agar animasi terpicu meski tab yang sama dibuka lagi.
+    void panel.offsetWidth;
+    panel.classList.add('dari-' + arah);
     window.scrollTo({ top: 0, behavior: 'auto' });
   });
 });
+
+/* Masthead memadat saat halaman digulir, agar menu tetap terjangkau. */
+(function mastheadMemadat() {
+  const el = $('.masthead');
+  if (!el) return;
+  let menunggu = false;
+  addEventListener('scroll', () => {
+    if (menunggu) return;
+    menunggu = true;
+    requestAnimationFrame(() => {
+      el.classList.toggle('ringkas', scrollY > 70);
+      menunggu = false;
+    });
+  }, { passive: true });
+})();
 
 /* ---------------- ruang staf ---------------- */
 
@@ -661,7 +742,9 @@ function pesanCeklis(t) {
 
 if (GERAK && 'IntersectionObserver' in window) {
   document.documentElement.classList.add('anim');
-  const target = '.promo, .stats, .two-col > div, #panel-jadwal > h3, #panel-jadwal > .checks, .flow li, .checks, .edu, .warn, .gate, .kaki';
+  // Sengaja hanya pada urutan langkah dan kartu edukasi. Memunculkan setiap blok
+  // dengan gerakan yang sama membuat halaman terasa seperti templat, bukan hidup.
+  const target = '.flow li, .edu, .warn';
   const io = new IntersectionObserver(entri => {
     entri.forEach(e => { if (e.isIntersecting) { e.target.classList.add('tampil'); io.unobserve(e.target); } });
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
@@ -679,6 +762,8 @@ $('#tanggal-hari-ini').textContent = tanggalPanjang(sekarang);
 if (staffTerbuka()) bukaStaf();
 muatData();
 if (KONFIG.API_URL) setInterval(() => { if (!document.hidden) muatData(); }, 120000);   // segarkan tiap 2 menit
+setInterval(() => { if (!document.hidden) perbaruiProgres(); }, 30000);                 // bar progres tiap 30 detik
+addEventListener('visibilitychange', () => { if (!document.hidden) perbaruiProgres(); });
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
