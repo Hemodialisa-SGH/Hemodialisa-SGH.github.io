@@ -253,9 +253,10 @@ body{padding-bottom:84px}
   .tabs{animation:pudar .6s .2s ease both}
 
   /* elemen muncul saat digulir */
-  html.anim .reveal{opacity:0;transform:translateY(22px);
-    transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
-  html.anim .reveal.tampil{opacity:1;transform:none}
+  /* pakai properti `translate`, bukan `transform`, agar tidak menimpa efek hover */
+  html.anim .reveal{opacity:0;translate:0 22px;
+    transition:opacity .7s ease,translate .7s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
+  html.anim .reveal.tampil{opacity:1;translate:0 0}
 
   /* kartu bed muncul berurutan pada tampilan pertama */
   .bedgrid.urut .bedcard{animation:naik .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i) * 90ms + .15s)}
@@ -270,8 +271,9 @@ body{padding-bottom:84px}
   /* pergantian tab */
   .panel:not([hidden]){animation:pudar .35s ease both}
 }
-@keyframes turun{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
-@keyframes naik{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+/* animasi masuk memakai `translate` agar `transform` tetap bebas dipakai hover */
+@keyframes turun{from{opacity:0;translate:0 -12px}to{opacity:1;translate:0 0}}
+@keyframes naik{from{opacity:0;translate:0 16px}to{opacity:1;translate:0 0}}
 @keyframes pudar{from{opacity:0}to{opacity:1}}
 @keyframes denyut{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(1.35);opacity:0}}
 
