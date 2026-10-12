@@ -203,10 +203,10 @@ strong{font-weight:600}
 }
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
   .day,.btn,.bedcard,.edu,.docs li{transition:color .2s ease,background-color .2s ease,border-color .2s ease,transform .2s ease,box-shadow .2s ease}
-  .day:hover{transform:translateY(-2px)}
-  .bedcard:hover,.edu:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(14,59,107,.12)}
-  .docs li:hover{transform:translateX(3px)}
-  .btn:hover{transform:translateY(-1px)}
+  .day:hover{transform:translateY(-3px);box-shadow:0 4px 10px rgba(14,59,107,.14)}
+  .bedcard:hover,.edu:hover{transform:translateY(-5px);box-shadow:0 12px 24px rgba(14,59,107,.18)}
+  .docs li:hover{transform:translateX(5px)}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(14,59,107,.22)}
 }
 @media (prefers-reduced-motion:no-preference){
   .day:active,.btn:active,.tab:active{transform:scale(.97)}

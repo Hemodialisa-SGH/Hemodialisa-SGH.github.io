@@ -1,9 +1,13 @@
-const CACHE = 'hd-rssgh-v13';
+/* Unit Hemodialisis RS Sedayu General Hospital — service worker
+   Naikkan VER setiap kali isi situs berubah, dan samakan angkanya dengan
+   ?v= pada tautan style.css dan app.js di index.html. */
+const VER = 14;
+const CACHE = 'hd-rssgh-v' + VER;
 const ASET = [
   './',
   './index.html',
-  './assets/css/style.css',
-  './assets/js/app.js',
+  `./assets/css/style.css?v=${VER}`,
+  `./assets/js/app.js?v=${VER}`,
   './assets/img/logo.png',
   './manifest.json'
 ];
@@ -19,14 +23,33 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Halaman statis: cache dulu. Permintaan ke domain lain (API jadwal) tidak pernah di-cache.
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
   if (url.origin !== self.location.origin) return;   // API jadwal, Sheets, dan font: langsung ke jaringan
+
+  // Gaya, skrip, dan halaman: utamakan jaringan agar perubahan langsung terlihat,
+  // lalu simpan salinannya untuk dipakai saat jaringan mati.
+  const utamakanJaringan = e.request.mode === 'navigate'
+    || /\.(css|js)$/.test(url.pathname);
+
+  if (utamakanJaringan) {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res.ok) {
+          const salinan = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, salinan));
+        }
+        return res;
+      }).catch(() => caches.match(e.request).then(hit => hit || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Gambar dan berkas lain: cache dulu, karena jarang berubah.
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-      if (res.ok && url.origin === self.location.origin) {
+      if (res.ok) {
         const salinan = res.clone();
         caches.open(CACHE).then(c => c.put(e.request, salinan));
       }
