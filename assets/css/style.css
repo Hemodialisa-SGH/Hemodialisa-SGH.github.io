@@ -293,3 +293,24 @@ body{padding-bottom:84px}
 .docs .ubah{appearance:none;border:1px solid #B7D2EC;background:#fff;color:var(--blue-deep);font:inherit;
   font-size:.82rem;padding:4px 10px;border-radius:6px;cursor:pointer}
 .docs .ubah:hover{background:#F2F7FC}
+
+/* ---------- hover tambahan: statistik, tautan, langkah alur, isian form ---------- */
+main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset:3px}
+.stat,.flow li h3,.warn,.slots li{transition:border-color .2s ease,background-color .2s ease,color .2s ease}
+.form-res input,.form-res select{transition:border-color .2s ease,box-shadow .2s ease}
+.form-res input:hover,.form-res select:hover{border-color:#B7D2EC}
+.form-res input:focus,.form-res select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(27,95,168,.13);outline:none}
+.ceklis-card label{transition:background-color .15s ease;border-radius:6px;padding:2px 4px;margin-left:-4px}
+
+@media (hover:hover){
+  main a:not(.btn):hover{text-decoration-color:var(--blue)}
+  .stat:hover{border-color:#B7D2EC}
+  .slots li:hover{color:var(--blue-deep)}
+  .ceklis-card label:hover{background:#F2F7FC}
+  .flow li:hover h3{color:var(--blue-deep)}
+}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .stat,.flow li::before{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+  .stat:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(14,59,107,.1)}
+  .flow li:hover::before{transform:scale(1.12)}
+}
