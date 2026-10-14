@@ -11,7 +11,14 @@
   --line:#D5DFE8;
   --biru-lembut:#2A6CB0;        /* biru FAQ: lebih terang dari biru tua, tetap lolos kontras AA */
   --biru-lembut-terang:#3C7FC2;
-  --halus:cubic-bezier(.22,.61,.36,1);   /* perlambatan lembut untuk semua gerakan */
+  /* Skala gerak. Tiga durasi saja, dipakai berulang, supaya seluruh situs
+     terasa satu tangan. Lengkung --laju melambat tegas di ujung: gerak terasa
+     mantap berhenti, bukan mengambang. */
+  --gerak-1:120ms;   /* warna, latar, fokus — nyaris seketika */
+  --gerak-2:220ms;   /* sorot, elevasi, tekan */
+  --gerak-3:380ms;   /* masuk dan pindah panel */
+  --laju:cubic-bezier(.2,0,0,1);
+  --halus:cubic-bezier(.33,0,.1,1);
   --sans:"Plus Jakarta Sans",system-ui,-apple-system,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,monospace;
   /* judul memakai keluarga yang sama dengan isi, dibedakan oleh ketebalan */
@@ -241,9 +248,10 @@ strong{font-weight:600}
 }
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
   .kaki-sosial a,.kaki-taut a,.kaki-hubungi a,.kaki-ikon{
-    transition:background-color .34s ease,color .34s ease,transform .34s var(--halus)}
-  .kaki-sosial a:hover{transform:translateY(-3px)}
-  .kaki-taut a:hover{transform:translateX(4px)}
+    transition:background-color var(--gerak-1) ease,color var(--gerak-1) ease,
+               transform var(--gerak-2) var(--halus)}
+  .kaki-sosial a:hover{transform:translateY(-2px)}
+  .kaki-taut a:hover{transform:translateX(3px)}
 }
 
 @media (max-width:900px){
@@ -266,13 +274,14 @@ strong{font-weight:600}
   .bedgrid{grid-template-columns:1fr 1fr}
 }
 @media (prefers-reduced-motion:no-preference){
-  .bed{transition:background .15s ease}
+  .bed{transition:background var(--gerak-1) ease}
 }
 .stats[hidden]{display:none}
 .is-gagal{border-left-color:var(--line)}.is-gagal .pill{background:#F1F4F7;color:var(--ink-soft)}
 
 /* animasi hover: hanya di perangkat dengan mouse, dan dimatikan bila pengguna memilih kurangi gerakan */
-.tab,.day,.btn,.bedcard,.edu,.docs li{transition:color .2s ease,background-color .2s ease,border-color .2s ease}
+.tab,.day,.btn,.bedcard,.edu,.docs li{transition:color var(--gerak-1) ease,
+  background-color var(--gerak-1) ease,border-color var(--gerak-1) ease}
 @media (hover:hover){
   .tab:hover{border-bottom-color:#CFE0EF;background:#F4F8FC}
   .tab.is-on:hover{border-bottom-color:var(--green)}
@@ -283,14 +292,16 @@ strong{font-weight:600}
   .edu:hover{border-top-color:var(--blue)}
 }
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .day,.btn,.bedcard,.edu,.docs li{transition:color .2s ease,background-color .2s ease,border-color .2s ease,transform .34s var(--halus),box-shadow .34s ease}
-  .day:hover{transform:translateY(-3px);box-shadow:0 4px 10px rgba(14,59,107,.14)}
-  .bedcard:hover,.edu:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(14,59,107,.18)}
-  .docs li:hover{transform:translateX(4px)}
-  .btn:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(14,59,107,.22)}
+  .day,.btn,.bedcard,.edu,.docs li{transition:color var(--gerak-1) ease,
+    background-color var(--gerak-1) ease,border-color var(--gerak-1) ease,
+    transform var(--gerak-2) var(--halus),box-shadow var(--gerak-2) ease}
+  .day:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(14,59,107,.12)}
+  .bedcard:hover,.edu:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(14,59,107,.13)}
+  .docs li:hover{transform:translateX(3px)}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(14,59,107,.18)}
 }
 @media (prefers-reduced-motion:no-preference){
-  .day:active,.btn:active,.tab:active{transform:scale(.97)}
+  .day:active,.btn:active,.tab:active{transform:scale(.985)}
 }
 
 /* kontak */
@@ -328,35 +339,39 @@ body{padding-bottom:84px}
 
 @media (prefers-reduced-motion:no-preference){
   /* header masuk saat halaman dibuka */
-  .masthead-in > *{animation:turun .6s cubic-bezier(.2,.7,.2,1) both}
-  .masthead-text{animation-delay:.08s}
-  .clock{animation-delay:.16s}
-  .tabs{animation:pudar .6s .2s ease both}
+  /* header cukup muncul sekali sebagai satu kesatuan; menganimasikan tiap
+     bagiannya sendiri-sendiri membuat halaman terasa rewel saat dibuka */
+  .topbar,.masthead{animation:pudar var(--gerak-3) var(--laju) both}
 
   /* elemen muncul saat digulir */
   /* pakai properti `translate`, bukan `transform`, agar tidak menimpa efek hover */
-  html.anim .reveal{opacity:0;translate:0 22px;
-    transition:opacity .7s ease,translate .7s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
+  /* transform dan bayangan ikut didaftarkan di sini: aturan ini lebih kuat
+     daripada transisi milik elemennya sendiri, jadi tanpa keduanya efek sorot
+     pada elemen yang ikut muncul-saat-digulir akan meloncat tanpa animasi */
+  html.anim .reveal{opacity:0;translate:0 14px;
+    transition:opacity var(--gerak-3) ease,translate var(--gerak-3) var(--laju),
+               transform var(--gerak-2) var(--halus),box-shadow var(--gerak-2) ease;
+    transition-delay:var(--d,0s)}
+  html.anim .reveal.tampil{transition-delay:0s}
   html.anim .reveal.tampil{opacity:1;translate:0 0}
 
   /* kartu bed muncul berurutan pada tampilan pertama */
-  .bedgrid.urut .bedcard{animation:naik .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i) * 90ms + .15s)}
+  .bedgrid.urut .bedcard{animation:naik var(--gerak-3) var(--laju) both;animation-delay:calc(var(--i) * 55ms + 60ms)}
 
-  /* denyut halus pada tombol WhatsApp */
-  .fab-wa::before{content:"";position:absolute;inset:0;border-radius:inherit;background:#1FA855;z-index:-1;
-    animation:denyut 2.4s ease-out infinite}
-  .fab-wa,.fab-ugd{animation:naik .5s .6s both;transition:transform .34s var(--halus)}
-  .fab-ugd{animation-delay:.7s}
+  /* Tanpa cincin berdenyut: gerak yang berulang terus menarik mata sepanjang
+     waktu dan membuat halaman terasa seperti iklan. Tombolnya cukup diam. */
+  .fab-wa,.fab-ugd{animation:naik var(--gerak-3) 180ms both;
+    transition:transform var(--gerak-2) var(--halus),box-shadow var(--gerak-2) ease}
+  .fab-ugd{animation-delay:240ms}
   .fab-wa:hover,.fab-ugd:hover{transform:translateY(-2px)}
+  .fab-wa:hover{box-shadow:0 10px 22px rgba(31,168,85,.45)}
 
   /* pergantian tab */
-  .panel:not([hidden]){animation:pudar .35s ease both}
+  .panel:not([hidden]){animation:pudar var(--gerak-2) ease both}
 }
 /* animasi masuk memakai `translate` agar `transform` tetap bebas dipakai hover */
-@keyframes turun{from{opacity:0;translate:0 -12px}to{opacity:1;translate:0 0}}
-@keyframes naik{from{opacity:0;translate:0 16px}to{opacity:1;translate:0 0}}
+@keyframes naik{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
 @keyframes pudar{from{opacity:0}to{opacity:1}}
-@keyframes denyut{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(1.35);opacity:0}}
 
 /* kartu promo */
 .promo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;
@@ -368,8 +383,8 @@ body{padding-bottom:84px}
 .promo-teks span{font-size:.84rem;color:#C5DBF0}
 .promo-aksi{flex:none;background:#fff;color:var(--blue-deep);font-weight:600;font-size:.86rem;padding:7px 14px;border-radius:999px}
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .promo{transition:transform .34s var(--halus),box-shadow .34s ease}
-  .promo:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(14,59,107,.22)}
+  .promo{transition:transform var(--gerak-2) var(--halus),box-shadow var(--gerak-2) ease}
+  .promo:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(14,59,107,.2)}
 }
 
 .res-aksi{display:flex;gap:6px;flex:none}
@@ -379,11 +394,12 @@ body{padding-bottom:84px}
 
 /* ---------- hover tambahan: statistik, tautan, langkah alur, isian form ---------- */
 main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset:3px}
-.stat,.flow li h3,.warn,.slots li{transition:border-color .2s ease,background-color .2s ease,color .2s ease}
-.form-res input,.form-res select{transition:border-color .2s ease,box-shadow .34s ease}
+.stat,.flow li h3,.warn,.slots li{transition:border-color var(--gerak-1) ease,
+  background-color var(--gerak-1) ease,color var(--gerak-1) ease}
+.form-res input,.form-res select{transition:border-color var(--gerak-1) ease,box-shadow var(--gerak-1) ease}
 .form-res input:hover,.form-res select:hover{border-color:#B7D2EC}
 .form-res input:focus,.form-res select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(27,95,168,.13);outline:none}
-.ceklis-card label{transition:background-color .15s ease;border-radius:6px;padding:2px 4px;margin-left:-4px}
+.ceklis-card label{transition:background-color var(--gerak-1) ease;border-radius:6px;padding:2px 4px;margin-left:-4px}
 
 @media (hover:hover){
   main a:not(.btn):hover{text-decoration-color:var(--blue)}
@@ -393,9 +409,9 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   .flow li:hover h3{color:var(--blue-deep)}
 }
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .stat,.flow li::before{transition:transform .34s var(--halus),box-shadow .34s ease,border-color .2s ease}
-  .stat:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(14,59,107,.1)}
-  .flow li:hover::before{transform:scale(1.12)}
+  .stat,.flow li::before{transition:transform var(--gerak-2) var(--halus),box-shadow var(--gerak-2) ease,border-color var(--gerak-1) ease}
+  .stat:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(14,59,107,.12)}
+  .flow li:hover::before{transform:scale(1.06)}
 }
 
 /* ======================================================================
@@ -408,16 +424,18 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   background:linear-gradient(90deg,var(--blue),#3C86D4)}
 .bed-sisa{margin:0;font-family:var(--mono);font-size:.74rem;color:var(--ink-soft);letter-spacing:-.01em}
 @media (prefers-reduced-motion:no-preference){
-  .maju i{transition:width 1.2s cubic-bezier(.3,.8,.3,1)}
+  .maju i{transition:width .9s var(--laju)}
 }
 
 /* titik denyut pada label bed yang sedang terisi */
 .is-terisi .pill{display:inline-flex;align-items:center;gap:6px}
 .is-terisi .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:#8FD08A;flex:none}
 @media (prefers-reduced-motion:no-preference){
-  .is-terisi .pill::before{animation:nadi 2s ease-in-out infinite}
+  .is-terisi .pill::before{animation:nadi 2.8s ease-in-out infinite}
 }
-@keyframes nadi{0%,100%{opacity:.35;scale:.8}50%{opacity:1;scale:1.15}}
+/* denyut status bed: hanya terang-redup, tanpa membesar — cukup menandakan
+   sesi sedang berjalan tanpa mengganggu pembacaan */
+@keyframes nadi{0%,100%{opacity:.45}50%{opacity:1}}
 
 /* kerangka sementara selagi jadwal dimuat */
 .bedcard.rangka{border-left-color:var(--line)}
@@ -426,7 +444,7 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 .kilau{background:#E9EFF5;color:transparent}
 @media (prefers-reduced-motion:no-preference){
   .kilau{background:linear-gradient(100deg,#E9EFF5 30%,#F5F8FB 50%,#E9EFF5 70%);
-    background-size:220% 100%;animation:kilau 1.4s linear infinite}
+    background-size:220% 100%;animation:kilau 1.6s linear infinite}
 }
 @keyframes kilau{from{background-position:120% 0}to{background-position:-120% 0}}
 
@@ -439,22 +457,22 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 
 /* panel tab meluncur mengikuti arah perpindahan */
 @media (prefers-reduced-motion:no-preference){
-  .panel.dari-kanan{animation:geserKanan .32s cubic-bezier(.2,.7,.2,1) both}
-  .panel.dari-kiri{animation:geserKiri .32s cubic-bezier(.2,.7,.2,1) both}
+  .panel.dari-kanan{animation:geserKanan var(--gerak-2) var(--laju) both}
+  .panel.dari-kiri{animation:geserKiri var(--gerak-2) var(--laju) both}
 }
-@keyframes geserKanan{from{opacity:0;translate:18px 0}to{opacity:1;translate:0 0}}
-@keyframes geserKiri{from{opacity:0;translate:-18px 0}to{opacity:1;translate:0 0}}
+@keyframes geserKanan{from{opacity:0;translate:10px 0}to{opacity:1;translate:0 0}}
+@keyframes geserKiri{from{opacity:0;translate:-10px 0}to{opacity:1;translate:0 0}}
 
 /* kartu bed: sorotan terasa seperti menekan kaca, bukan sekadar naik */
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .bedcard{transition:transform .38s var(--halus),box-shadow .38s ease,border-color .2s ease}
+  .bedcard{transition:transform var(--gerak-2) var(--halus),box-shadow var(--gerak-2) ease,border-color var(--gerak-1) ease}
   .bedcard:hover .maju i{filter:saturate(1.25)}
 }
 
 
 /* bayangan tipis muncul saat masthead menempel, agar batasnya terbaca */
 .masthead{box-shadow:0 0 0 rgba(10,35,64,0)}
-@media (prefers-reduced-motion:no-preference){.masthead{transition:box-shadow .38s ease}}
+@media (prefers-reduced-motion:no-preference){.masthead{transition:box-shadow var(--gerak-2) ease}}
 .masthead.ringkas{box-shadow:0 4px 14px rgba(14,59,107,.13)}
 
 /* ======================================================================
@@ -476,15 +494,15 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 .ik-obat{background:#E4F3E2;color:#3C7E31}
 
 @media (prefers-reduced-motion:no-preference){
-  .edu-ikon{transition:transform .4s var(--halus),box-shadow .4s ease}
+  .edu-ikon{transition:transform var(--gerak-2) var(--halus),box-shadow var(--gerak-2) ease}
 }
 @media (hover:hover){
   .edu:hover .tip{background:#EDF4FA}
 }
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .edu{transition:transform .4s var(--halus),box-shadow .4s ease,border-color .2s ease}
-  .edu:hover{transform:translateY(-6px);box-shadow:0 18px 34px rgba(14,59,107,.16);border-color:#C9DDEE}
-  .edu:hover .edu-ikon{transform:scale(1.06);box-shadow:0 8px 18px rgba(14,59,107,.14)}
+  .edu{transition:transform var(--gerak-2) var(--halus),box-shadow var(--gerak-2) ease,border-color var(--gerak-1) ease}
+  .edu:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(14,59,107,.13);border-color:#C9DDEE}
+  .edu:hover .edu-ikon{transform:scale(1.03);box-shadow:0 6px 14px rgba(14,59,107,.12)}
 }
 
 @media (max-width:760px){
@@ -526,8 +544,8 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 .fakta b{font-size:.72rem;font-weight:600;color:var(--ink-soft);letter-spacing:.02em}
 
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .fakta{transition:transform .36s var(--halus),box-shadow .36s ease,border-color .2s ease}
-  .fakta:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(14,59,107,.12);border-color:#BFD8EE}
+  .fakta{transition:transform var(--gerak-2) var(--halus),box-shadow var(--gerak-2) ease,border-color var(--gerak-1) ease}
+  .fakta:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(14,59,107,.1);border-color:#BFD8EE}
 }
 
 @media (max-width:980px){
@@ -553,8 +571,8 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   font-size:.82rem;font-weight:600;padding:9px 14px;border-radius:999px;
   box-shadow:0 3px 10px rgba(14,59,107,.14)}
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .hero-foto img{transition:transform .6s var(--halus)}
-  .hero-foto:hover img{transform:scale(1.025)}
+  .hero-foto img{transition:transform .5s var(--halus)}
+  .hero-foto:hover img{transform:scale(1.015)}
 }
 @media (max-width:980px){
   .hero-foto{aspect-ratio:16/10}
@@ -639,13 +657,13 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   .poin li:hover{background:#EDF4FA}
 }
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .kartu,.tautan a,.poin li{transition:transform .36s var(--halus),box-shadow .36s ease,
-    background-color .2s ease,border-color .2s ease}
-  .kartu:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(14,59,107,.1);border-color:#CFE0EF}
-  .tautan a:hover{transform:translateX(4px)}
+  .kartu,.tautan a,.poin li{transition:transform var(--gerak-2) var(--halus),
+    box-shadow var(--gerak-2) ease,background-color var(--gerak-1) ease,border-color var(--gerak-1) ease}
+  .kartu:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(14,59,107,.1);border-color:#CFE0EF}
+  .tautan a:hover{transform:translateX(3px)}
   .tautan a:hover span{color:var(--blue)}
-  .lencana{transition:transform .36s var(--halus)}
-  .kartu:hover .lencana{transform:scale(1.05)}
+  .lencana{transition:transform var(--gerak-2) var(--halus)}
+  .kartu:hover .lencana{transform:scale(1.03)}
 }
 
 @media (max-width:980px){
@@ -680,12 +698,12 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 .tanya summary:focus-visible{outline:3px solid var(--green);outline-offset:-3px}
 
 @media (prefers-reduced-motion:no-preference){
-  .panah{transition:transform .38s var(--halus)}
-  .tanya[open] .jawab{animation:bukaJawab .42s var(--halus) both}
-  .tanya summary{transition:background-color .2s ease}
+  .panah{transition:transform var(--gerak-2) var(--halus)}
+  .tanya[open] .jawab{animation:bukaJawab var(--gerak-2) var(--laju) both}
+  .tanya summary{transition:background-color var(--gerak-1) ease}
 }
 .tanya[open] .panah{transform:rotate(180deg)}
-@keyframes bukaJawab{from{opacity:0;translate:0 -6px}to{opacity:1;translate:0 0}}
+@keyframes bukaJawab{from{opacity:0;translate:0 -4px}to{opacity:1;translate:0 0}}
 
 @media (hover:hover){
   .tanya summary:hover{background:var(--biru-lembut-terang)}
@@ -708,5 +726,5 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 .bendera{display:block;flex:none;border-radius:2px}
 .bhs.is-on{background:#fff;color:var(--blue-deep)}
 @media (hover:hover){.bhs:not(.is-on):hover{color:#fff}}
-@media (prefers-reduced-motion:no-preference){.bhs{transition:background-color .3s ease,color .3s ease}}
+@media (prefers-reduced-motion:no-preference){.bhs{transition:background-color var(--gerak-1) ease,color var(--gerak-1) ease}}
 @media (max-width:560px){.bahasa{order:-1}}

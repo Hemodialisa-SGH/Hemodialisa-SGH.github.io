@@ -379,7 +379,7 @@ function hitungNaik(el, nilai) {
   const n = Number(nilai);
   if (!GERAK || !Number.isFinite(n) || el.dataset.dihitung) { el.textContent = nilai; return; }
   el.dataset.dihitung = '1';
-  const mulai = performance.now(), durasi = 900;
+  const mulai = performance.now(), durasi = 1000;
   (function langkah(t) {
     const p = Math.min((t - mulai) / durasi, 1);
     el.textContent = Math.round(n * (1 - Math.pow(1 - p, 3)));
@@ -820,15 +820,16 @@ function pesanCeklis(t) {
 
 if (GERAK && 'IntersectionObserver' in window) {
   document.documentElement.classList.add('anim');
-  // Sengaja hanya pada urutan langkah dan kartu edukasi. Memunculkan setiap blok
-  // dengan gerakan yang sama membuat halaman terasa seperti templat, bukan hidup.
-  const target = '.flow li, .edu, .warn';
+  // Satu saat masuk yang tertata: isi hero naik berurutan saat halaman dibuka,
+  // lalu hanya urutan langkah dan kartu edukasi yang muncul saat digulir.
+  // Memunculkan setiap blok dengan gerakan sama membuat halaman terasa templat.
+  const target = '.hero-teks > *, .flow li, .edu, .warn';
   const io = new IntersectionObserver(entri => {
     entri.forEach(e => { if (e.isIntersecting) { e.target.classList.add('tampil'); io.unobserve(e.target); } });
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
   $$(target).forEach(el => {
     const saudara = Array.from(el.parentElement.children).filter(x => x.matches(target));
-    el.style.setProperty('--d', Math.min(saudara.indexOf(el), 5) * 0.08 + 's');
+    el.style.setProperty('--d', Math.min(saudara.indexOf(el), 4) * 0.055 + 's');
     el.classList.add('reveal');
     io.observe(el);
   });
