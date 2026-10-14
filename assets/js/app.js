@@ -9,7 +9,7 @@ const KONFIG = {
   // Untuk pratinjau dengan data contoh, buka situs dengan akhiran ?contoh=1
   // URL aplikasi web Apps Script (berakhiran /exec). Lihat apps-script/Kode.gs.
   // Bila diisi, jadwal dibaca dan ditulis lewat API ini dan SHEET_ID diabaikan.
-  API_URL: '',
+  API_URL: 'https://script.google.com/macros/s/AKfycbzmm4IrCQDF5og9NwjCq3lE_iupTcKoUMy7_og2hTGnSr4ZbaJnCwn2R6IYYRSivJjO/exec',
   SHEET_ID: '',
   NAMA_TAB_JADWAL: 'Jadwal',   // kolom: Tanggal | Mulai | Selesai | Bed | Inisial | Akses | Keterangan
   NAMA_TAB_REKAP: 'Rekap',     // kolom: Bulan | Jumlah tindakan
