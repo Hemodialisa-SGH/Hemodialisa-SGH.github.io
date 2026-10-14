@@ -703,7 +703,9 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 /* pemilih bahasa */
 .bahasa{display:inline-flex;gap:2px;background:rgba(255,255,255,.12);border-radius:999px;padding:3px}
 .bhs{appearance:none;border:0;background:transparent;color:#C5DBF0;font:inherit;font-size:.78rem;
-  font-weight:700;letter-spacing:.04em;padding:4px 12px;border-radius:999px;cursor:pointer}
+  font-weight:700;letter-spacing:.04em;padding:4px 11px;border-radius:999px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;line-height:1}
+.bendera{display:block;flex:none;border-radius:2px}
 .bhs.is-on{background:#fff;color:var(--blue-deep)}
 @media (hover:hover){.bhs:not(.is-on):hover{color:#fff}}
 @media (prefers-reduced-motion:no-preference){.bhs{transition:background-color .3s ease,color .3s ease}}
