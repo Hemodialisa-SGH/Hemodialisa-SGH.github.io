@@ -682,8 +682,7 @@ function isiForm(r) {
   EDIT_ID = r.id;
   $('#res-tanggal').value = r.tanggal;
   $('#res-bed').value = SEMUA_BED().find(b => normBed(b) === r.bed) || 'Bed 1';
-  $('#res-mulai').value = formatJam(r.mulai).replace('.', ':');
-  $('#res-selesai').value = formatJam(r.selesai).replace('.', ':');
+  $('#res-shift').value = r.mulai >= 12 * 60 ? 'S' : 'P';
   $('#res-nama').value = r.nama;
   $('#res-status').value = r.status || 'Pasien Rutin';
   $('#res-rs').value = r.rs; $('#res-alamat').value = r.alamat; $('#res-ket').value = r.ket;
@@ -695,22 +694,27 @@ function isiForm(r) {
 
 $('#batal-res').addEventListener('click', () => { kosongkanForm(); pesanRes('Perubahan dibatalkan.', ''); });
 
+/* Dua shift ini sama dengan baris jam di tab bulanan Google Sheet, sehingga
+   setiap reservasi dari situs selalu punya tempat di tab itu. */
+const SHIFT = { P: ['06:00', '11:00'], S: ['13:30', '19:00'] };
+
 $('#simpan-res').addEventListener('click', async () => {
+  const jam = SHIFT[$('#res-shift').value] || SHIFT.P;
   const data = {
     tanggal: $('#res-tanggal').value, bed: $('#res-bed').value,
-    mulai: $('#res-mulai').value, selesai: $('#res-selesai').value,
+    mulai: jam[0], selesai: jam[1],
     nama: $('#res-nama').value.trim(), status: $('#res-status').value,
     rs: $('#res-rs').value.trim(), alamat: $('#res-alamat').value.trim(),
     ket: $('#res-ket').value.trim(), petugas: $('#res-petugas').value.trim(),
   };
-  if (!data.tanggal || !data.mulai || !data.selesai) return pesanRes('Isi tanggal, jam mulai, dan jam selesai.', 'err');
-  if (data.selesai <= data.mulai) return pesanRes('Jam selesai harus setelah jam mulai.', 'err');
+  if (!data.tanggal) return pesanRes(T('Isi tanggal lebih dahulu.', 'Pick a date first.'), 'err');
   if (!data.nama) return pesanRes('Isi nama pasien.', 'err');
   const btn = $('#simpan-res'), teksLama = btn.textContent;
   btn.disabled = true; btn.textContent = 'Menyimpan…';
   try {
-    await kirimApi(EDIT_ID ? { aksi: 'ubah', id: EDIT_ID, data } : { aksi: 'tambah', data });
-    pesanRes(`${EDIT_ID ? 'Perubahan' : 'Reservasi'} ${data.bed} ${data.mulai.replace(':', '.')}–${data.selesai.replace(':', '.')} tersimpan.`, 'ok');
+    const balas = await kirimApi(EDIT_ID ? { aksi: 'ubah', id: EDIT_ID, data } : { aksi: 'tambah', data });
+    if (balas && balas.catatan) pesanRes(balas.catatan, 'err', true);
+    else pesanRes(`${EDIT_ID ? 'Perubahan' : 'Reservasi'} ${data.bed} ${data.mulai.replace(':', '.')}–${data.selesai.replace(':', '.')} tersimpan di Database dan tab bulan.`, 'ok');
     kosongkanForm();
     await muatData();
   } catch (e) {
@@ -751,7 +755,12 @@ function gambarDaftarRes() {
       b.addEventListener('click', async () => {
         if (!confirm(`Hapus reservasi ${r.inisial || r.nama} pada ${d} ${BULAN[m - 1]}, ${formatJam(r.mulai)}?`)) return;
         b.disabled = true; b.textContent = 'Menghapus…';
-        try { await kirimApi({ aksi: 'hapus', id: r.id }); pesanRes('Reservasi dihapus.', 'ok'); await muatData(); }
+        try {
+          const balas = await kirimApi({ aksi: 'hapus', id: r.id });
+          if (balas && balas.catatan) pesanRes(balas.catatan, 'err', true);
+          else pesanRes('Reservasi dihapus dari Database dan tab bulan.', 'ok');
+          await muatData();
+        }
         catch (e) { pesanRes(e.message, 'err'); b.disabled = false; b.textContent = 'Hapus'; }
       });
       aksi.append(u, b);

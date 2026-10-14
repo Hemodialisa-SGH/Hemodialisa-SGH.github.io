@@ -200,7 +200,8 @@ s26:["Rate our service"],
 s27:["I allow this message to be shown as a testimonial on the Hemodialysis Unit site"],
 s28:["Send feedback"],
 
-f01:["Date"], f02:["Bed"], f03:["Start time"], f04:["End time"],
+f01:["Date"], f02:["Bed"], f03:["Shift"],
+t200:["Morning · 06.00–11.00"], t201:["Afternoon · 13.30–19.00"],
 f05:["Patient name"], f06:["Patient status"], f07:["Referring hospital"],
 f08:["Address (optional)"], f09:["Notes (optional)"], f10:["Entered by (optional)"],
 
