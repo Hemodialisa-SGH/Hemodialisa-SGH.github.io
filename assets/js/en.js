@@ -5,7 +5,6 @@
 window.EN = {
 t000:["Skip to content"],
 t001:[null],
-t002:["Emergency 24h ",null],
 t003:["Dialysis Unit ",null],
 t004:[null],
 t005:["Hemodialysis Unit"],
