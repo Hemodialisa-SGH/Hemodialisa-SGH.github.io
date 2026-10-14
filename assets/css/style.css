@@ -41,9 +41,8 @@ body{
 .topbar{background:var(--blue-deep);color:#C5DBF0;font-size:.86rem}
 .topbar-in{display:flex;align-items:center;justify-content:space-between;gap:16px;
   padding-top:10px;padding-bottom:10px;flex-wrap:wrap}
-.tb-kiri,.tb-kanan{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.tb-kiri{gap:14px}
-/* lencana IGD 24 jam — tanda saja, tanpa nomor telepon */
+.tb-kanan{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+/* lencana IGD 24 jam di kiri nomor Unit HD — tanda saja, tanpa nomor telepon */
 .tb-igd{gap:7px;padding:3px 12px 3px 5px;border-radius:999px;color:#fff;font-weight:600;
   background:rgba(216,70,60,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
 .tb-igd b{font-weight:700}
@@ -730,7 +729,9 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 .bhs.is-on{background:#fff;color:var(--blue-deep)}
 @media (hover:hover){.bhs:not(.is-on):hover{color:#fff}}
 @media (prefers-reduced-motion:no-preference){.bhs{transition:background-color var(--gerak-1) ease,color var(--gerak-1) ease}}
-@media (max-width:560px){.bahasa{order:-1}}
+/* di layar kecil pemilih bahasa turun ke baris sendiri, supaya lencana IGD
+   tetap bersebelahan dengan nomor Unit HD */
+@media (max-width:560px){.bahasa{order:1}}
 
 /* ======================================================================
    FAQ dua kolom, testimoni, dan kotak saran
