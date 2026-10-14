@@ -476,17 +476,23 @@ $$('.tab').forEach(t => {
   });
 });
 
-/* Masthead memadat saat halaman digulir, agar menu tetap terjangkau. */
+/* Masthead memadat saat halaman digulir, agar menu tetap terjangkau.
+   Memadat memendekkan masthead, dan karena masthead ikut menempati ruang
+   halaman, isi di bawahnya naik sehingga posisi gulir bergeser. Dengan satu
+   ambang, pergeseran itu melewati ambang lagi dan header berkedip naik-turun.
+   Karena itu ambang memadat dan ambang mengembang dibuat berjauhan. */
 (function mastheadMemadat() {
   const el = $('.masthead');
   if (!el) return;
-  let menunggu = false;
+  const AMBANG_PADAT = 120, AMBANG_LEBAR = 50;
+  let padat = false, menunggu = false;
   addEventListener('scroll', () => {
     if (menunggu) return;
     menunggu = true;
     requestAnimationFrame(() => {
-      el.classList.toggle('ringkas', scrollY > 70);
       menunggu = false;
+      if (!padat && scrollY > AMBANG_PADAT) { padat = true; el.classList.add('ringkas'); }
+      else if (padat && scrollY < AMBANG_LEBAR) { padat = false; el.classList.remove('ringkas'); }
     });
   }, { passive: true });
 })();

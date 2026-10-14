@@ -355,10 +355,11 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   .logo{transition:width .25s ease,padding .25s ease}
   h1{transition:font-size .25s ease}
 }
-.masthead.ringkas .masthead-in{padding-top:10px;padding-bottom:8px}
-.masthead.ringkas .logo{width:38px;padding:3px}
-.masthead.ringkas h1{font-size:1.35rem}
-.masthead.ringkas .rs{font-size:.72rem}
+/* pemadatan dibuat ringan: makin besar perubahannya, makin terasa isi halaman
+   melompat saat ambang terlewati */
+.masthead.ringkas .masthead-in{padding-top:13px;padding-bottom:11px}
+.masthead.ringkas .logo{width:44px;padding:4px}
+.masthead.ringkas h1{font-size:1.6rem}
 
 /* panel tab meluncur mengikuti arah perpindahan */
 @media (prefers-reduced-motion:no-preference){
@@ -374,7 +375,7 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   .bedcard:hover .maju i{filter:saturate(1.25)}
 }
 @media (max-width:760px){
-  .masthead.ringkas h1{font-size:1.2rem}
+  .masthead.ringkas h1{font-size:1.3rem}
 }
 
 /* bayangan tipis muncul saat masthead menempel, agar batasnya terbaca */
