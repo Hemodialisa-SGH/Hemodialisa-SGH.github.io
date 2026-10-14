@@ -699,3 +699,12 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   .tanya summary{font-size:.95rem;padding:14px 16px;gap:12px}
   .jawab{padding:14px 16px 16px}
 }
+
+/* pemilih bahasa */
+.bahasa{display:inline-flex;gap:2px;background:rgba(255,255,255,.12);border-radius:999px;padding:3px}
+.bhs{appearance:none;border:0;background:transparent;color:#C5DBF0;font:inherit;font-size:.78rem;
+  font-weight:700;letter-spacing:.04em;padding:4px 12px;border-radius:999px;cursor:pointer}
+.bhs.is-on{background:#fff;color:var(--blue-deep)}
+@media (hover:hover){.bhs:not(.is-on):hover{color:#fff}}
+@media (prefers-reduced-motion:no-preference){.bhs{transition:background-color .3s ease,color .3s ease}}
+@media (max-width:560px){.bahasa{order:-1}}

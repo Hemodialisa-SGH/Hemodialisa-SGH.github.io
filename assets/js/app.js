@@ -49,8 +49,67 @@ const KONFIG = {
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-const HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+/* ---------------- dua bahasa ----------------
+   Teks Indonesia tetap tertulis di index.html. Saat halaman dimuat, isi tiap
+   elemen ber-data-t dicatat sebagai versi Indonesia, lalu versi Inggris
+   diambil dari assets/js/en.js. Berpindah bahasa hanya menukar potongan teks,
+   sehingga ikon, tautan, dan struktur halaman tidak tersentuh. */
+
+let BHS = 'id';
+const ASLI = new Map();          // kunci data-t -> daftar potongan teks Indonesia
+const SIMPUL = new Map();        // kunci data-t -> daftar simpul teksnya
+
+function potonganTeks(el) {
+  const jalan = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => n.nodeValue.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT,
+  });
+  const keluar = [];
+  for (let n = jalan.nextNode(); n; n = jalan.nextNode()) keluar.push(n);
+  return keluar;
+}
+
+function catatBahasaAsli() {
+  document.querySelectorAll('[data-t]').forEach(el => {
+    const k = el.dataset.t;
+    const simpul = potonganTeks(el);
+    SIMPUL.set(k, simpul);
+    ASLI.set(k, simpul.map(n => n.nodeValue));
+  });
+}
+
+function terapkanBahasa(b) {
+  BHS = b;
+  const kamus = (b === 'en' && window.EN) ? window.EN : null;
+  SIMPUL.forEach((simpul, k) => {
+    const asli = ASLI.get(k);
+    const terjemah = kamus && kamus[k];
+    simpul.forEach((n, i) => {
+      const baru = terjemah && terjemah[i] != null ? terjemah[i] : asli[i];
+      if (n.nodeValue !== baru) n.nodeValue = baru;
+    });
+  });
+  document.documentElement.lang = b;
+  $$('.bhs').forEach(t => {
+    const aktif = t.dataset.bhs === b;
+    t.classList.toggle('is-on', aktif);
+    t.setAttribute('aria-pressed', aktif ? 'true' : 'false');
+  });
+  try { localStorage.setItem('hd_bahasa', b); } catch (e) {}
+}
+
+/* Teks yang dibuat oleh skrip (papan bed, tanggal, pesan) diterjemahkan lewat t(). */
+const t = s => (BHS === 'en' && window.EN && window.EN.dinamis[s]) || s;
+
+const HARI_ID = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const BULAN_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const pilihDaftar = (idArr, kunci) => new Proxy(idArr, {
+  get: (o, sifat) => ((BHS === 'en' && window.EN) ? window.EN.dinamis[kunci] : o)[sifat],
+});
+const HARI = pilihDaftar(HARI_ID, 'hari');
+const BULAN = pilihDaftar(BULAN_ID, 'bulan');
+/* potongan pendek: cukup sebut kedua versinya di tempat */
+const T = (id, en) => (BHS === 'en' ? en : id);
 let sekarang = new Date();
 const MODE_CONTOH = new URLSearchParams(location.search).has('contoh');
 
@@ -218,8 +277,9 @@ function persenSesi(r) {
 function sisaTeks(r) {
   const sisa = Math.max(0, r.selesai - menitSekarang);
   const j = Math.floor(sisa / 60), m = sisa % 60;
-  const lama = j ? `${j} jam${m ? ' ' + m + ' menit' : ''}` : `${m} menit`;
-  return `${persenSesi(r)}% berjalan · sisa ${lama}`;
+  const jamT = T('jam', 'h'), menitT = T('menit', 'min');
+  const lama = j ? `${j} ${jamT}${m ? ' ' + m + ' ' + menitT : ''}` : `${m} ${menitT}`;
+  return BHS === 'en' ? `${persenSesi(r)}% done · ${lama} left` : `${persenSesi(r)}% berjalan · sisa ${lama}`;
 }
 
 /* Kerangka sementara selagi jadwal dimuat, agar papan tidak tampak kosong. */
@@ -267,10 +327,12 @@ function gambarPapan(target, iso, tampilkanInisial) {
     const isi = rows.filter(r => r.bed === normBed(b));
     const aktif = isi.find(r => sedangBerjalan(r, iso));
     let status, kelas;
-    if (STATUS_DATA === 'gagal') { status = 'Belum terbaca'; kelas = 'gagal'; }
-    else if (aktif) { status = 'Terisi'; kelas = 'terisi'; }
-    else if (iso !== isoHariIni && isi.length) { status = `${isi.length} reservasi`; kelas = 'dipesan'; }
-    else { status = 'Kosong'; kelas = 'kosong'; }
+    if (STATUS_DATA === 'gagal') { status = T('Belum terbaca', 'Not loaded'); kelas = 'gagal'; }
+    else if (aktif) { status = T('Terisi', 'Occupied'); kelas = 'terisi'; }
+    else if (iso !== isoHariIni && isi.length) {
+      status = `${isi.length} ` + T('reservasi', isi.length > 1 ? 'bookings' : 'booking');
+      kelas = 'dipesan';
+    } else { status = T('Kosong', 'Free'); kelas = 'kosong'; }
 
     const kartu = document.createElement('article');
     kartu.className = 'bedcard is-' + kelas;
@@ -280,7 +342,7 @@ function gambarPapan(target, iso, tampilkanInisial) {
     if (aktif) {
       const siapa = tampilkanInisial && aktif.inisial ? ` · ${esc(aktif.inisial)}` : '';
       kartu.insertAdjacentHTML('beforeend',
-        `<p class="bed-now">Dialisis berjalan sampai ${formatJam(aktif.selesai)}${siapa}</p>`
+        `<p class="bed-now">${T('Dialisis berjalan sampai', 'Dialysis running until')} ${formatJam(aktif.selesai)}${siapa}</p>`
         + `<div class="maju" role="progressbar" aria-label="Kemajuan sesi dialisis"`
         + ` aria-valuemin="0" aria-valuemax="100" aria-valuenow="${persenSesi(aktif)}">`
         + `<i style="--p:${persenSesi(aktif)}%"></i></div>`
@@ -299,12 +361,12 @@ function gambarPapan(target, iso, tampilkanInisial) {
         const detail = tampilkanInisial && (r.status || r.rs)
           ? `<small>${esc([r.status, r.rs].filter(Boolean).join(' · '))}</small>` : '';
         ul.insertAdjacentHTML('beforeend',
-          `<li${lewat ? ' class="lewat"' : ''}><b>${formatJam(r.mulai)}–${formatJam(r.selesai)}</b>${siapa}${lewat ? ' (selesai)' : ''}${detail}</li>`);
+          `<li${lewat ? ' class="lewat"' : ''}><b>${formatJam(r.mulai)}–${formatJam(r.selesai)}</b>${siapa}${lewat ? T(' (selesai)', ' (finished)') : ''}${detail}</li>`);
       });
       kartu.appendChild(ul);
     } else if (!aktif && STATUS_DATA !== 'gagal') {
       kartu.insertAdjacentHTML('beforeend',
-        `<p class="bed-kosong">Belum ada reservasi${iso === isoHariIni ? ' hari ini' : ''}</p>`);
+        `<p class="bed-kosong">${T('Belum ada reservasi', 'No bookings')}${iso === isoHariIni ? T(' hari ini', ' today') : ''}</p>`);
     }
     grid.appendChild(kartu);
   });
@@ -336,10 +398,12 @@ function hitungStatistik() {
   hitungNaik($('#stat-pasien'), adaData ? rows.length : '—');
   hitungNaik($('#stat-mesin'), adaData ? bedDipakai : '—');
   $('#stat-mesin-total').textContent = KONFIG.BED.length;
-  const bulanIni = BULAN[sekarang.getMonth()];
+  const bulanIni = BULAN_ID[sekarang.getMonth()];
   const rekap = DATA_REKAP.find(r => (r[0] || '').toLowerCase() === bulanIni.toLowerCase());
   hitungNaik($('#stat-bulan'), rekap ? rekap[1] : '—');
-  $('#status-bed').textContent = adaData ? `${berjalan} dari ${KONFIG.BED.length} bed sedang dipakai` : '';
+  $('#status-bed').textContent = adaData
+    ? (BHS === 'en' ? `${berjalan} of ${KONFIG.BED.length} beds in use`
+                    : `${berjalan} dari ${KONFIG.BED.length} bed sedang dipakai`) : '';
 }
 
 function gambarRekap() {
@@ -383,27 +447,27 @@ async function muatData() {
     DATA_JADWAL = buatContoh();
     DATA_REKAP = CONTOH_REKAP;
     STATUS_DATA = 'contoh';
-    tandaiSumberData('Mode pratinjau: data contoh, bukan jadwal sebenarnya.', true);
+    tandaiSumberData(t('Mode pratinjau: data contoh, bukan jadwal sebenarnya.'), true);
   } else if (KONFIG.API_URL) {
     try {
       const d = await ambilApi();
       DATA_JADWAL = d.jadwal;
       DATA_REKAP = d.rekap;
       STATUS_DATA = 'tersambung';
-      tandaiSumberData('Diperbarui langsung dari jadwal reservasi unit.', false);
+      tandaiSumberData(t('Diperbarui langsung dari jadwal reservasi unit.'), false);
     } catch (e) {
       STATUS_DATA = 'gagal';
       tandaiSumberData(`Jadwal gagal dimuat: ${e.message}. Hubungi petugas unit untuk informasi slot.`, true);
     }
   } else if (!KONFIG.SHEET_ID) {
     STATUS_DATA = 'kosong';
-    tandaiSumberData('Hubungi petugas unit untuk menanyakan slot atau membuat reservasi.', false);
+    tandaiSumberData(t('Hubungi petugas unit untuk menanyakan slot atau membuat reservasi.'), false);
   } else {
     try {
       const jadwal = await ambilSheet(KONFIG.NAMA_TAB_JADWAL);
       DATA_JADWAL = jadwal.baris.map(barisKeReservasi).filter(r => r.tanggal && r.bed);
       STATUS_DATA = 'tersambung';
-      tandaiSumberData('Diperbarui langsung dari jadwal reservasi unit.', false);
+      tandaiSumberData(t('Diperbarui langsung dari jadwal reservasi unit.'), false);
       try {
         const rekap = await ambilSheet(KONFIG.NAMA_TAB_REKAP);
         DATA_REKAP = rekap.baris.filter(r => r[0]);
@@ -436,7 +500,7 @@ function pasangPilihTanggal() {
     b.className = 'day';
     b.dataset.iso = isoLokal(d);
     b.setAttribute('aria-pressed', b.dataset.iso === terpilih ? 'true' : 'false');
-    b.textContent = h === 0 ? `Hari ini, ${d.getDate()}` : `${HARI[d.getDay()].slice(0, 3)} ${d.getDate()}`;
+    b.textContent = h === 0 ? `${T('Hari ini', 'Today')}, ${d.getDate()}` : `${HARI[d.getDay()].slice(0, 3)} ${d.getDate()}`;
     b.addEventListener('click', () => {
       $$('.day', wrap).forEach(x => x.setAttribute('aria-pressed', 'false'));
       b.setAttribute('aria-pressed', 'true');
@@ -625,11 +689,11 @@ function gambarDaftarRes() {
   const ul = $('#daftar-res');
   if (!ul || !staffTerbuka()) return;
   ul.innerHTML = '';
-  if (!KONFIG.API_URL) { ul.innerHTML = '<li class="note">Belum tersambung ke Apps Script.</li>'; return; }
+  if (!KONFIG.API_URL) { ul.innerHTML = '<li class="note">' + t('Belum tersambung ke Apps Script.') + '</li>'; return; }
   const rows = DATA_JADWAL
     .filter(r => r.tanggal > isoHariIni || (r.tanggal === isoHariIni && (r.selesai ?? 0) > menitSekarang))
     .sort((a, b) => a.tanggal.localeCompare(b.tanggal) || (a.mulai ?? 0) - (b.mulai ?? 0));
-  if (!rows.length) { ul.innerHTML = '<li class="note">Belum ada reservasi mendatang.</li>'; return; }
+  if (!rows.length) { ul.innerHTML = '<li class="note">' + t('Belum ada reservasi mendatang.') + '</li>'; return; }
   rows.forEach(r => {
     const [y, m, d] = r.tanggal.split('-').map(Number);
     const tgl = new Date(y, m - 1, d);
@@ -643,11 +707,11 @@ function gambarDaftarRes() {
       aksi.className = 'res-aksi';
       const u = document.createElement('button');
       u.className = 'ubah';
-      u.textContent = 'Ubah';
+      u.textContent = T('Ubah', 'Edit');
       u.addEventListener('click', () => isiForm(r));
       const b = document.createElement('button');
       b.className = 'hapus';
-      b.textContent = 'Hapus';
+      b.textContent = T('Hapus', 'Delete');
       b.addEventListener('click', async () => {
         if (!confirm(`Hapus reservasi ${r.inisial || r.nama} pada ${d} ${BULAN[m - 1]}, ${formatJam(r.mulai)}?`)) return;
         b.disabled = true; b.textContent = 'Menghapus…';
@@ -769,6 +833,31 @@ if (GERAK && 'IntersectionObserver' in window) {
     io.observe(el);
   });
 }
+
+/* ---------------- pemilih bahasa ---------------- */
+
+catatBahasaAsli();
+$$('.bhs').forEach(tombol => {
+  tombol.addEventListener('click', () => {
+    if (tombol.dataset.bhs === BHS) return;
+    terapkanBahasa(tombol.dataset.bhs);
+    // papan dan daftar berisi teks buatan skrip, jadi digambar ulang
+    $('#papan-isi').dataset.tampil = '1';
+    $('#papan-sub').textContent = tanggalPanjang(sekarang);
+    $('#tanggal-hari-ini').textContent = tanggalPanjang(sekarang);
+    gambarPapan($('#papan-isi'), isoHariIni, staffTerbuka());
+    hitungStatistik();
+    pasangPilihTanggal();
+    gambarDaftarRes();
+  });
+});
+
+(function bahasaAwal() {
+  let pilih = '';
+  try { pilih = localStorage.getItem('hd_bahasa') || ''; } catch (e) {}
+  if (!pilih && !navigator.language.toLowerCase().startsWith('id')) pilih = 'en';
+  terapkanBahasa(pilih === 'en' ? 'en' : 'id');
+})();
 
 /* ---------------- jalan ---------------- */
 
