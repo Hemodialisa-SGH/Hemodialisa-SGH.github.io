@@ -41,7 +41,13 @@ body{
 .topbar{background:var(--blue-deep);color:#C5DBF0;font-size:.86rem}
 .topbar-in{display:flex;align-items:center;justify-content:space-between;gap:16px;
   padding-top:10px;padding-bottom:10px;flex-wrap:wrap}
-.tb-kanan{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.tb-kiri,.tb-kanan{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.tb-kiri{gap:14px}
+/* lencana IGD 24 jam — tanda saja, tanpa nomor telepon */
+.tb-igd{gap:7px;padding:3px 12px 3px 5px;border-radius:999px;color:#fff;font-weight:600;
+  background:rgba(216,70,60,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.tb-igd b{font-weight:700}
+.tb-igd .igd-tanda{opacity:1}
 .tb{display:inline-flex;align-items:center;gap:6px;color:inherit;text-decoration:none;white-space:nowrap}
 .tb b{color:#fff;font-weight:700;letter-spacing:0}
 .tb svg{flex:none;opacity:.85}
@@ -266,8 +272,8 @@ strong{font-weight:600}
 }
 
 @media (max-width:760px){
-  /* yang disembunyikan hanya alamat dan tanggal, bukan nomor UGD */
-  .tb-waktu,.topbar-in > .tb:first-child{display:none}
+  /* yang disembunyikan hanya alamat dan tanggal; lencana IGD tetap tampil */
+  .tb-waktu,.tb-alamat{display:none}
   .grid-3,.grid-2,.two-col{grid-template-columns:1fr}
   .shiftrow{grid-template-columns:1fr;gap:6px}
   .bed{flex:1 1 calc(33% - 6px)}

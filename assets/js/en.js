@@ -5,6 +5,7 @@
 window.EN = {
 t000:["Skip to content"],
 t001:[null],
+t002:["Emergency ","24 Hours"],
 t003:["Dialysis Unit ",null],
 t004:[null],
 t005:["Hemodialysis Unit"],
@@ -20,7 +21,7 @@ t014:["Kidney replacement therapy for patients with chronic and acute kidney fai
 t015:["View bed schedule"],
 t016:["Chat on WhatsApp"],
 t017:["Process & preparation"],
-t018:["Capacity","4 beds"],
+t018:["Dialyzer","Single use"],
 t019:["Schedule","By reservation"],
 t020:["Staff","HD-certified"],
 t021:["Hemodialysis Unit, RS Sedayu General Hospital"],
