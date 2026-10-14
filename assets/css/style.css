@@ -520,3 +520,70 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   .hero-foto{aspect-ratio:auto;align-self:stretch;min-height:430px}
   .hero-foto img{position:absolute;inset:0;width:100%;height:100%}
 }
+
+/* ======================================================================
+   Bagian isi: kolom utama berisi kartu, sidebar berisi aksi dan tautan
+   ====================================================================== */
+.isi-dua{display:grid;grid-template-columns:1fr .44fr;gap:20px;align-items:start;margin-top:20px}
+.kolom-utama,.kolom-sisi{display:grid;gap:20px;align-content:start}
+.grid-2.rapat{gap:20px}
+
+.kartu{background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px 28px;
+  box-shadow:0 1px 2px rgba(14,59,107,.05)}
+.kartu-kepala{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+.lencana{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;flex:none}
+.lc-biru{background:#E4EFFB;color:var(--blue)}
+.lc-kuning{background:#FCF1DC;color:var(--amber)}
+.lc-hijau{background:#E4F3E2;color:#3C7E31}
+
+.mata{margin:0 0 3px;font-size:.71rem;font-weight:700;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--blue)}
+.kartu h2{font-family:var(--serif);font-size:1.3rem;margin:0;line-height:1.22}
+.kartu > .mata + h2{margin-bottom:8px}
+.kartu p{margin:0 0 10px}
+.kartu p:last-child{margin-bottom:0}
+.kartu-lede{font-size:.92rem;color:var(--ink-soft)}
+.kartu .facts{margin-top:4px}
+
+/* butir berlatar, dengan titik hijau seperti rujukan */
+.poin{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.poin li{position:relative;background:#F4F8FB;border-radius:11px;padding:12px 14px 12px 32px;
+  font-size:.91rem;line-height:1.5}
+.poin li::before{content:"";position:absolute;left:14px;top:18px;width:8px;height:8px;
+  border-radius:50%;background:var(--green)}
+
+/* tombol bertumpuk di sidebar */
+.tumpuk{display:grid;gap:9px;margin-top:14px}
+.tumpuk .btn{text-align:center;text-decoration:none;font-size:.9rem;padding:12px 16px;
+  border-radius:11px;cursor:pointer}
+.btn-lembut{background:#E4EFFB;border-color:#E4EFFB;color:var(--blue-deep)}
+.btn-lembut:hover{background:#D5E6F7}
+
+/* daftar tautan dengan panah */
+.tautan{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+.tautan a{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:#F4F8FB;border-radius:11px;padding:12px 14px;text-decoration:none;
+  font-size:.92rem;font-weight:500;color:var(--blue-deep)}
+.tautan span{color:var(--ink-soft);font-size:1.05rem;line-height:1}
+
+@media (hover:hover){
+  .tautan a:hover{background:#E4EFFB}
+  .poin li:hover{background:#EDF4FA}
+}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .kartu,.tautan a,.poin li{transition:transform .22s cubic-bezier(.2,.7,.2,1),box-shadow .22s ease,
+    background-color .2s ease,border-color .2s ease}
+  .kartu:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(14,59,107,.1);border-color:#CFE0EF}
+  .tautan a:hover{transform:translateX(4px)}
+  .tautan a:hover span{color:var(--blue)}
+  .lencana{transition:transform .22s cubic-bezier(.2,.7,.2,1)}
+  .kartu:hover .lencana{transform:scale(1.07)}
+}
+
+@media (max-width:980px){
+  .isi-dua{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  .grid-2.rapat{grid-template-columns:1fr}
+  .kartu{padding:22px 20px}
+}
