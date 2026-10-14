@@ -589,3 +589,47 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   .grid-2.rapat{grid-template-columns:1fr}
   .kartu{padding:22px 20px}
 }
+
+/* ======================================================================
+   FAQ: dipakai elemen <details> bawaan HTML agar tetap bisa dibuka lewat
+   keyboard dan tetap berfungsi bila skrip gagal dimuat
+   ====================================================================== */
+.faq{margin-top:30px}
+.faq-judul{margin:0 0 18px;font-size:clamp(1.42rem,.9rem + 1.3vw,2.1rem)}
+.faq .mata{margin-bottom:6px;display:flex;align-items:center;gap:7px}
+
+.tanya{margin-bottom:11px;border-radius:14px;overflow:hidden;
+  box-shadow:0 1px 2px rgba(14,59,107,.06)}
+.tanya summary{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  background:var(--blue-deep);color:#fff;font-weight:600;font-size:1rem;
+  padding:15px 20px;cursor:pointer;list-style:none;
+}
+.tanya summary::-webkit-details-marker{display:none}
+.tanya summary::marker{content:""}
+.panah{flex:none}
+.jawab{background:#fff;border:1px solid var(--line);border-top:0;
+  border-radius:0 0 14px 14px;padding:16px 20px 18px}
+.jawab p{margin:0;color:var(--ink-soft)}
+.tanya summary:focus-visible{outline:3px solid var(--green);outline-offset:-3px}
+
+@media (prefers-reduced-motion:no-preference){
+  .panah{transition:transform .25s cubic-bezier(.2,.7,.2,1)}
+  .tanya[open] .jawab{animation:bukaJawab .28s ease both}
+  .tanya summary{transition:background-color .2s ease}
+}
+.tanya[open] .panah{transform:rotate(180deg)}
+@keyframes bukaJawab{from{opacity:0;translate:0 -6px}to{opacity:1;translate:0 0}}
+
+@media (hover:hover){
+  .tanya summary:hover{background:var(--blue)}
+}
+
+/* catatan edukatif */
+.catatan-edu{margin:22px 0 0;background:#FDF8EC;border:1px solid #EBDCB8;
+  border-radius:12px;padding:15px 18px;font-size:.92rem;color:#6B5420;max-width:none}
+
+@media (max-width:560px){
+  .tanya summary{font-size:.95rem;padding:14px 16px;gap:12px}
+  .jawab{padding:14px 16px 16px}
+}
