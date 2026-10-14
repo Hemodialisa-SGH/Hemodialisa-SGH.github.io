@@ -174,9 +174,8 @@ t167:["Chat on WhatsApp"],
 
 /* bagian FAQ dua kolom, testimoni, dan kotak saran */
 s01:["Common questions"],
-s02:["Answers to the questions we hear most"],
-s03:["Still not finding an answer? Ask unit staff directly on WhatsApp."],
-s04:["Ask on WhatsApp"],
+s02:["Frequently asked questions"],
+s03:["What patients and families ask most often, before and during dialysis at our unit."],
 s05:["Patient testimonials"],
 s06:["What they say about us"],
 s07:["Comments from patients and families who have had dialysis in our unit, shown with their permission."],
