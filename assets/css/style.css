@@ -9,16 +9,18 @@
   --amber:#B5751A;
   --red:#B03030;
   --line:#D5DFE8;
-  --sans:"IBM Plex Sans",system-ui,sans-serif;
+  --sans:"Plus Jakarta Sans",system-ui,-apple-system,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,monospace;
-  --serif:"Source Serif 4",Georgia,serif;
+  /* judul memakai keluarga yang sama dengan isi, dibedakan oleh ketebalan */
+  --judul:"Plus Jakarta Sans",system-ui,-apple-system,sans-serif;
 }
 
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{
   margin:0;background:var(--paper);color:var(--ink);
-  font-family:var(--sans);font-size:16px;line-height:1.6;
+  font-family:var(--sans);font-size:17px;line-height:1.62;
+  -webkit-font-smoothing:antialiased;
 }
 .wrap{max-width:1280px;margin:0 auto;padding:0 24px}
 .skip{position:absolute;left:-9999px}
@@ -26,15 +28,15 @@ body{
 :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 
 /* bilah info tipis di atas */
-.topbar{background:var(--blue-deep);color:#C5DBF0;font-size:.78rem}
+.topbar{background:var(--blue-deep);color:#C5DBF0;font-size:.86rem}
 .topbar-in{display:flex;align-items:center;justify-content:space-between;gap:16px;
-  padding-top:8px;padding-bottom:8px;flex-wrap:wrap}
+  padding-top:10px;padding-bottom:10px;flex-wrap:wrap}
 .tb-kanan{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .tb{display:inline-flex;align-items:center;gap:6px;color:inherit;text-decoration:none;white-space:nowrap}
-.tb b{color:#fff;font-weight:600;font-family:var(--mono);letter-spacing:-.02em}
+.tb b{color:#fff;font-weight:700;letter-spacing:0}
 .tb svg{flex:none;opacity:.85}
-.tb-waktu{font-family:var(--mono);gap:10px}
-.tb-waktu b{font-family:var(--mono);font-weight:500}
+.tb-waktu{gap:10px}
+.tb-waktu b{font-weight:600}
 @media (hover:hover){a.tb:hover{color:#fff}a.tb:hover svg{opacity:1}}
 
 /* bilah menu putih */
@@ -44,17 +46,17 @@ body{
 .merek{display:flex;align-items:center;gap:11px;text-decoration:none;color:inherit;flex:none}
 .merek-teks{display:flex;flex-direction:column;min-width:0}
 .logo{width:42px;height:auto;flex:none}
-.rs{font-size:.7rem;letter-spacing:.04em;color:var(--ink-soft);margin:0}
-h1{font-family:var(--serif);font-weight:600;font-size:1.26rem;line-height:1.15;margin:0;color:var(--blue-deep)}
-.btn-daftar{flex:none;background:var(--blue-deep);color:#fff;text-decoration:none;font-weight:600;
-  font-size:.86rem;padding:10px 18px;border-radius:999px;white-space:nowrap}
+.rs{font-size:.76rem;font-weight:500;letter-spacing:.01em;color:var(--ink-soft);margin:0}
+h1{font-family:var(--judul);font-weight:800;font-size:1.3rem;line-height:1.15;margin:0;color:var(--blue-deep);letter-spacing:-.02em}
+.btn-daftar{flex:none;background:var(--blue-deep);color:#fff;text-decoration:none;font-weight:700;
+  font-size:.92rem;padding:11px 20px;border-radius:999px;white-space:nowrap}
 
 /* tabs */
 .tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1;justify-content:flex-end}
 .tabs::-webkit-scrollbar{display:none}
 .tab{
   appearance:none;border:0;background:transparent;color:var(--ink-soft);
-  font:inherit;font-size:.91rem;padding:9px 13px;cursor:pointer;white-space:nowrap;
+  font:inherit;font-size:.97rem;font-weight:500;padding:9px 13px;cursor:pointer;white-space:nowrap;
   border-bottom:3px solid transparent;border-radius:6px 6px 0 0;
 }
 .tab:hover{color:var(--blue-deep)}
@@ -62,7 +64,7 @@ h1{font-family:var(--serif);font-weight:600;font-size:1.26rem;line-height:1.15;m
 
 main.wrap{padding-top:28px;padding-bottom:48px}
 .panel[hidden]{display:none}
-h2{font-family:var(--serif);font-size:1.4rem;font-weight:600;margin:32px 0 8px}
+h2{font-family:var(--judul);font-size:1.5rem;font-weight:700;margin:32px 0 10px;letter-spacing:-.02em}
 .panel > h2:first-child,.board-head h2{margin-top:0}
 h3{font-size:1rem;font-weight:600;margin:22px 0 6px}
 p{margin:0 0 12px;max-width:68ch}
@@ -296,7 +298,7 @@ body{padding-bottom:84px}
   background:linear-gradient(100deg,var(--blue-deep),var(--blue))}
 .promo[hidden]{display:none}
 .promo-teks{display:flex;flex-direction:column;line-height:1.35}
-.promo-teks strong{font-family:var(--serif);font-size:1.1rem}
+.promo-teks strong{font-family:var(--judul);font-weight:700;font-size:1.12rem}
 .promo-teks span{font-size:.84rem;color:#C5DBF0}
 .promo-aksi{flex:none;background:#fff;color:var(--blue-deep);font-weight:600;font-size:.86rem;padding:7px 14px;border-radius:999px}
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
@@ -396,7 +398,7 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   box-shadow:0 1px 2px rgba(14,59,107,.06)}
 .edu-ikon{display:grid;place-items:center;width:72px;height:72px;border-radius:50%;margin:0 auto 14px}
 .edu-ikon svg{display:block}
-.edu h3{font-family:var(--serif);font-size:1.22rem;margin:0 0 10px}
+.edu h3{font-family:var(--judul);font-weight:700;font-size:1.26rem;margin:0 0 10px;letter-spacing:-.015em}
 .edu p{max-width:none;font-size:.93rem}
 .edu .tip{border-left:0;padding:12px 14px;margin-top:14px;border-radius:10px;background:#F4F8FB;
   text-align:left;font-size:.86rem}
@@ -440,8 +442,8 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 .eyebrow{display:inline-flex;align-items:center;gap:7px;margin:0 0 18px;
   font-size:.74rem;font-weight:700;letter-spacing:.13em;color:var(--blue);
   background:#fff;border:1px solid #D3E3F2;border-radius:999px;padding:6px 14px 6px 11px}
-.hero-judul{font-family:var(--serif);font-weight:600;line-height:1.1;
-  font-size:clamp(1.74rem, 0.95rem + 2.5vw, 3.1rem);
+.hero-judul{font-family:var(--judul);font-weight:800;line-height:1.08;letter-spacing:-.03em;
+  font-size:clamp(1.92rem, 1rem + 2.9vw, 3.6rem);
   letter-spacing:-.015em;margin:0 0 14px;color:var(--ink)}
 .hero-lede{font-size:1.08rem;line-height:1.62;color:var(--ink-soft);max-width:48ch;margin:0 0 26px}
 
@@ -538,7 +540,7 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 
 .mata{margin:0 0 3px;font-size:.71rem;font-weight:700;letter-spacing:.13em;
   text-transform:uppercase;color:var(--blue)}
-.kartu h2{font-family:var(--serif);font-size:1.3rem;margin:0;line-height:1.22}
+.kartu h2{font-family:var(--judul);font-weight:700;font-size:1.36rem;margin:0;line-height:1.22;letter-spacing:-.02em}
 .kartu > .mata + h2{margin-bottom:8px}
 .kartu p{margin:0 0 10px}
 .kartu p:last-child{margin-bottom:0}
