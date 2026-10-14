@@ -135,15 +135,22 @@ function imporTabBulan(namaTab) {
 /**
  * Menentukan tab mana yang diimpor bila imporTabBulan dijalankan lewat tombol Run
  * (tombol itu tidak bisa mengirim argumen). Urutan tebakan:
- *   1. tab yang namanya diawali nama bulan berjalan, misal "Oktober" atau "Oktober 2026";
+ *   1. tab yang namanya diawali nama bulan berjalan, disingkat maupun lengkap:
+ *      "OKT 26", "Okt", "Oktober", "Oktober 2026" sama-sama dikenali.
+ *      Bila ada beberapa, dipilih yang memuat angka tahun ini;
  *   2. tab yang sedang dibuka, asalkan bukan tab buatan skrip ini.
  */
 function tebakTabBulan_(ss) {
   const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  const kini = bulan[new Date().getMonth()].toLowerCase();
+  const d = new Date();
+  const awalan = bulan[d.getMonth()].slice(0, 3).toLowerCase();   // jan, feb, … okt, des
+  const th4 = String(d.getFullYear()), th2 = th4.slice(-2);
   const nama = ss.getSheets().map(s => s.getName());
-  const cocok = nama.filter(n => n.trim().toLowerCase().indexOf(kini) === 0)[0];
-  if (cocok) return cocok;
+  const cocok = nama.filter(n => n.trim().toLowerCase().indexOf(awalan) === 0);
+  if (cocok.length) {
+    const berTahun = cocok.filter(n => n.indexOf(th4) >= 0 || n.indexOf(th2) >= 0);
+    return berTahun[0] || cocok[0];
+  }
   const aktif = ss.getActiveSheet().getName();
   if ([TAB_DB, TAB_TAMPIL, TAB_SARAN].indexOf(aktif) < 0) return aktif;
   throw new Error('Tab bulan tidak dikenali. Buka dulu tab bulan yang mau diimpor, '
