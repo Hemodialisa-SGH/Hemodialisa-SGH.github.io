@@ -456,6 +456,14 @@ function pasangPilihTanggal() {
 const URUT_TAB = $$('.tab').map(t => t.dataset.panel);
 let tabSekarang = 0;
 
+/* Tombol di hero yang membuka tab lain, misalnya "Lihat jadwal bed". */
+$$('[data-ke]').forEach(b => {
+  b.addEventListener('click', () => {
+    const tab = $$('.tab').find(t => t.dataset.panel === b.dataset.ke);
+    if (tab) tab.click();
+  });
+});
+
 $$('.tab').forEach(t => {
   t.addEventListener('click', () => {
     const tujuan = URUT_TAB.indexOf(t.dataset.panel);
