@@ -13,6 +13,8 @@ const KONFIG = {
   SHEET_ID: '',
   NAMA_TAB_JADWAL: 'Jadwal',   // kolom: Tanggal | Mulai | Selesai | Bed | Inisial | Akses | Keterangan
   NAMA_TAB_REKAP: 'Rekap',     // kolom: Bulan | Jumlah tindakan
+  // Hanya dipakai bila API_URL kosong. Saat tersambung ke Apps Script, PIN yang
+  // berlaku adalah properti skrip PIN_STAF di sisi server, bukan yang di sini.
   PIN_STAF: '1209',
   BED: ['Bed 1', 'Bed 2', 'Bed 3', 'Bed 4'],
   BED_TAMBAHAN: ['Xtra'],       // bed cadangan: bisa dipilih di form, tidak dijadikan kartu
@@ -597,15 +599,43 @@ function bukaStaf() {
   }
 }
 
-$('#buka-staf').addEventListener('click', () => {
-  if ($('#pin').value === KONFIG.PIN_STAF) {
-    try { sessionStorage.setItem('hd_staf', $('#pin').value); } catch (e) {}
-    $('#pin-pesan').textContent = '';
-    $('#pin').value = '';
-    bukaStaf();
-    if (KONFIG.API_URL) muatData();   // muat ulang agar inisial ikut terkirim
-  } else {
-    $('#pin-pesan').textContent = 'PIN belum cocok. Tanyakan kepada penanggung jawab unit.';
+function terimaPin(pin) {
+  try { sessionStorage.setItem('hd_staf', pin); } catch (e) {}
+  $('#pin-pesan').textContent = '';
+  $('#pin').value = '';
+  bukaStaf();
+  if (KONFIG.API_URL) muatData();   // muat ulang agar inisial ikut terkirim
+}
+
+/* PIN diperiksa di server bila sudah tersambung ke Apps Script, supaya nomornya
+   tidak perlu ada di kode sumber situs yang terbuka untuk umum. */
+$('#buka-staf').addEventListener('click', async () => {
+  const pin = $('#pin').value.trim();
+  const pesan = $('#pin-pesan');
+  const salah = T('PIN belum cocok. Tanyakan kepada penanggung jawab unit.',
+                  'PIN does not match. Please ask the unit supervisor.');
+  if (!pin) { pesan.textContent = salah; return; }
+
+  if (!KONFIG.API_URL) {
+    if (pin === KONFIG.PIN_STAF) terimaPin(pin); else pesan.textContent = salah;
+    return;
+  }
+
+  const tombol = $('#buka-staf');
+  tombol.disabled = true;
+  pesan.textContent = T('Memeriksa PIN…', 'Checking PIN…');
+  try {
+    const url = KONFIG.API_URL + (KONFIG.API_URL.includes('?') ? '&' : '?')
+      + 'pin=' + encodeURIComponent(pin) + '&t=' + Date.now();
+    const res = await fetch(url);
+    const d = await res.json();
+    if (d.ok && d.staf) terimaPin(pin);
+    else pesan.textContent = (d && d.pesan) || salah;
+  } catch (e) {
+    pesan.textContent = T('Tidak bisa memeriksa PIN. Periksa sambungan internet, lalu coba lagi.',
+                          'Could not check the PIN. Check your connection and try again.');
+  } finally {
+    tombol.disabled = false;
   }
 });
 $('#pin').addEventListener('keydown', e => { if (e.key === 'Enter') $('#buka-staf').click(); });
