@@ -20,6 +20,8 @@
  */
 
 const TAB_DB = 'Database';
+const TAB_SARAN = 'Saran';
+const KOLOM_SARAN = ['Waktu', 'Nama', 'Kategori', 'Nilai', 'Pesan', 'Izin tampil', 'Ditampilkan'];
 const TAB_TAMPIL = 'Tampilan';
 const KOLOM = ['Tanggal', 'Mulai', 'Selesai', 'Bed', 'Status', 'RS perujuk', 'Alamat', 'Pasien', 'Keterangan', 'ID', 'Dicatat', 'Petugas'];
 const BED = ['Bed 1', 'Bed 2', 'Bed 3', 'Bed 4', 'Xtra'];
@@ -42,6 +44,13 @@ function siapkan() {
     sh.setColumnWidths(1, KOLOM.length, 110);
   }
   if (!ss.getSheetByName(TAB_TAMPIL)) ss.insertSheet(TAB_TAMPIL);
+  let sr = ss.getSheetByName(TAB_SARAN);
+  if (!sr) {
+    sr = ss.insertSheet(TAB_SARAN);
+    sr.getRange(1, 1, 1, KOLOM_SARAN.length).setValues([KOLOM_SARAN]).setFontWeight('bold');
+    sr.setFrozenRows(1);
+    sr.setColumnWidth(5, 420);
+  }
   const props = PropertiesService.getScriptProperties();
   if (!props.getProperty('PIN_STAF')) props.setProperty('PIN_STAF', '1209');
   SpreadsheetApp.getActive().toast('Tab Database dan Tampilan siap. Lanjutkan dengan imporTabBulan.');
@@ -178,6 +187,7 @@ function bangunTampilan(bulanIso) {
 function doGet(e) {
   try {
     const p = (e && e.parameter) || {};
+    if (p.aksi === 'testimoni') return json({ ok: true, testimoni: ambilTestimoni() });
     const staf = cekPin(p.pin).ok;
     const hariIni = hariIniIso();
     const semua = bacaDb();
@@ -197,6 +207,11 @@ function doPost(e) {
   const kunci = LockService.getScriptLock();
   try {
     const body = JSON.parse((e.postData && e.postData.contents) || '{}');
+    // Saran dikirim oleh pasien, bukan staf, jadi tidak memerlukan PIN.
+    if (body.aksi === 'saran') {
+      kunci.waitLock(15000);
+      return json(simpanSaran(body.data || {}));
+    }
     const pin = cekPin(body.pin);
     if (!pin.ok) return json({ ok: false, pesan: pin.pesan });
     kunci.waitLock(15000);
@@ -253,6 +268,48 @@ function hapus(id) {
   if (baris < 0) return { ok: false, pesan: 'Reservasi tidak ditemukan. Mungkin sudah dihapus.' };
   sh.deleteRow(baris);
   return { ok: true };
+}
+
+/* ==================== kotak saran ==================== */
+
+/**
+ * Menyimpan masukan dari pasien. Nama boleh kosong. Pesan hanya boleh tampil
+ * sebagai testimoni bila pengirimnya mencentang izin DAN petugas menandai
+ * kolom "Ditampilkan" dengan ya — jadi tidak ada pesan yang naik ke situs
+ * tanpa dibaca manusia lebih dahulu.
+ */
+function simpanSaran(d) {
+  const pesan = String(d.pesan || '').trim().slice(0, 600);
+  if (pesan.length < 10) return { ok: false, pesan: 'Pesan terlalu pendek.' };
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName(TAB_SARAN);
+  if (!sh) return { ok: false, pesan: 'Tab Saran belum dibuat. Jalankan siapkan() lebih dahulu.' };
+
+  let nilai = Number(d.nilai);
+  if (!(nilai >= 1 && nilai <= 5)) nilai = '';
+
+  sh.appendRow([
+    Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'),
+    String(d.nama || '').trim().slice(0, 40),
+    String(d.kategori || 'Saran').slice(0, 20),
+    nilai,
+    pesan,
+    d.izin ? 'ya' : 'tidak',
+    '',
+  ]);
+  return { ok: true };
+}
+
+/** Hanya baris dengan izin = ya DAN Ditampilkan = ya yang dikirim ke situs. */
+function ambilTestimoni() {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB_SARAN);
+  if (!sh || sh.getLastRow() < 2) return [];
+  return sh.getRange(2, 1, sh.getLastRow() - 1, KOLOM_SARAN.length).getValues()
+    .filter(v => String(v[5]).toLowerCase() === 'ya' && String(v[6]).toLowerCase() === 'ya')
+    .map(v => ({ nama: String(v[1] || ''), kategori: String(v[2] || ''), nilai: v[3], pesan: String(v[4] || '') }))
+    .reverse()
+    .slice(0, 6);
 }
 
 /* ==================== util ==================== */

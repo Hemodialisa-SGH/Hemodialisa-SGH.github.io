@@ -81,6 +81,12 @@ function catatBahasaAsli() {
 function terapkanBahasa(b) {
   BHS = b;
   const kamus = (b === 'en' && window.EN) ? window.EN : null;
+  // teks bayangan pada isian tidak berupa simpul teks, jadi ditukar terpisah
+  document.querySelectorAll('[data-ph]').forEach(el => {
+    if (!el.dataset.phAsli) el.dataset.phAsli = el.placeholder;
+    const en = kamus && kamus[el.dataset.ph];
+    el.placeholder = (en && en[0]) || el.dataset.phAsli;
+  });
   SIMPUL.forEach((simpul, k) => {
     const asli = ASLI.get(k);
     const terjemah = kamus && kamus[k];
@@ -835,6 +841,141 @@ if (GERAK && 'IntersectionObserver' in window) {
   });
 }
 
+/* ---------------- testimoni pasien ----------------
+   Hanya menampilkan pesan yang pengirimnya mencentang izin tampil. Tidak ada
+   testimoni contoh: kutipan buatan yang ditampilkan seolah dari pasien adalah
+   kebohongan, sekecil apa pun maksudnya. Selama belum ada yang masuk, bagian
+   ini mengatakan apa adanya. */
+
+const BINTANG_PENUH = '★', BINTANG_KOSONG = '☆';
+
+function gambarTestimoni(daftar) {
+  const wadah = $('#testi-isi'), catatan = $('#testi-catatan');
+  if (!wadah) return;
+  wadah.innerHTML = '';
+  if (!daftar || !daftar.length) {
+    wadah.innerHTML = `<p class="testi-kosong">${
+      T('Belum ada testimoni yang ditampilkan. Masukan yang Anda kirim di bawah akan tampil di sini bila Anda mengizinkannya.',
+        'No testimonials are shown yet. Feedback you send below will appear here if you allow it.')}</p>`;
+    catatan.textContent = '';
+    return;
+  }
+  daftar.slice(0, 6).forEach(r => {
+    const nilai = Math.max(0, Math.min(5, Number(r.nilai) || 0));
+    const nama = (r.nama || '').trim() || T('Pasien', 'Patient');
+    const el = document.createElement('article');
+    el.className = 'testi-kartu';
+    el.innerHTML = `<span class="petik" aria-hidden="true">&rdquo;</span>`
+      + (nilai ? `<p class="bintang-tampil" aria-label="${nilai} ${T('dari', 'of')} 5">`
+          + BINTANG_PENUH.repeat(nilai) + BINTANG_KOSONG.repeat(5 - nilai) + '</p>' : '')
+      + `<p class="testi-kata">&ldquo;${esc(r.pesan || '')}&rdquo;</p>`
+      + `<div class="testi-orang"><span class="testi-awal" aria-hidden="true">${esc(nama[0].toUpperCase())}</span>`
+      + `<span class="testi-nama"><b>${esc(nama)}</b><small>${esc(r.kategori || T('Masukan', 'Feedback'))}</small></span></div>`;
+    wadah.appendChild(el);
+  });
+  catatan.textContent = T('Ditampilkan atas izin pengirimnya.', 'Shown with the sender’s permission.');
+}
+
+async function muatTestimoni() {
+  if (!KONFIG.API_URL) { gambarTestimoni([]); return; }
+  try {
+    const res = await fetch(KONFIG.API_URL + (KONFIG.API_URL.includes('?') ? '&' : '?')
+      + 'aksi=testimoni&t=' + Date.now());
+    const d = await res.json();
+    gambarTestimoni(d.ok ? d.testimoni : []);
+  } catch (e) { gambarTestimoni([]); }
+}
+
+/* ---------------- kotak saran ---------------- */
+
+(function kotakSaran() {
+  const form = $('#form-saran');
+  if (!form) return;
+  let nilai = 0;
+
+  const kotakBintang = $('#sr-bintang');
+  for (let i = 1; i <= 5; i++) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.nilai = i;
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', 'false');
+    b.innerHTML = `<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">`
+      + `<path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.4l6.5-.9z"/></svg>`;
+    b.addEventListener('click', () => {
+      nilai = i;
+      $$('button', kotakBintang).forEach((x, n) => {
+        x.classList.toggle('aktif', n < i);
+        x.setAttribute('aria-checked', n === i - 1 ? 'true' : 'false');
+      });
+    });
+    kotakBintang.appendChild(b);
+  }
+
+  const pesan = $('#sr-pesan'), sisa = $('#sr-sisa');
+  pesan.addEventListener('input', () => { sisa.textContent = 600 - pesan.value.length; });
+
+  function status(teks, jenis) {
+    const el = $('#sr-status');
+    el.textContent = teks;
+    el.className = 'sr-pesan ' + (jenis || '');
+  }
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const isi = pesan.value.trim();
+    if (isi.length < 10) {
+      status(T('Tuliskan pesan Anda lebih dahulu, minimal 10 huruf.',
+               'Please write your message first, at least 10 characters.'), 'err');
+      pesan.focus();
+      return;
+    }
+    const data = {
+      nama: $('#sr-nama').value.trim(),
+      kategori: $('#sr-kategori').value,
+      pesan: isi,
+      nilai: nilai,
+      izin: $('#sr-izin').checked,
+    };
+
+    if (!KONFIG.API_URL) {
+      // Tanpa Apps Script, pesan tidak bisa dikirim diam-diam. Dialihkan ke
+      // WhatsApp, dan dikatakan terus terang bahwa jalur itu tidak anonim.
+      status(T('Pengiriman lewat situs belum aktif. Pesan Anda dibuka di WhatsApp — jalur ini tidak anonim, nomor Anda akan terlihat petugas.',
+               'Sending from the site is not active yet. Your message will open in WhatsApp — that route is not anonymous; staff will see your number.'), 'err');
+      const teks = `${data.kategori}${data.nama ? ' dari ' + data.nama : ''}:\n${data.pesan}`
+        + (nilai ? `\n\nPenilaian: ${nilai}/5` : '');
+      setTimeout(() => window.open('https://wa.me/6285725251288?text=' + encodeURIComponent(teks), '_blank', 'noopener'), 1400);
+      return;
+    }
+
+    const tombol = $('#sr-kirim'), teksLama = tombol.textContent;
+    tombol.disabled = true;
+    tombol.textContent = T('Mengirim…', 'Sending…');
+    try {
+      const res = await fetch(KONFIG.API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ aksi: 'saran', data }),
+      });
+      const d = await res.json();
+      if (!d.ok) throw new Error(d.pesan || 'Gagal mengirim');
+      form.reset();
+      nilai = 0;
+      $$('button', kotakBintang).forEach(x => { x.classList.remove('aktif'); x.setAttribute('aria-checked', 'false'); });
+      sisa.textContent = '600';
+      status(T('Terima kasih. Masukan Anda sudah kami terima.',
+               'Thank you. We have received your feedback.'), 'ok');
+      if (data.izin) muatTestimoni();
+    } catch (err) {
+      status(T('Pesan gagal dikirim: ', 'Could not send your message: ') + err.message, 'err');
+    } finally {
+      tombol.disabled = false;
+      tombol.textContent = teksLama;
+    }
+  });
+})();
+
 /* ---------------- pemilih bahasa ---------------- */
 
 catatBahasaAsli();
@@ -850,6 +991,7 @@ $$('.bhs').forEach(tombol => {
     hitungStatistik();
     pasangPilihTanggal();
     gambarDaftarRes();
+    muatTestimoni();
   });
 });
 
@@ -865,6 +1007,7 @@ $$('.bhs').forEach(tombol => {
 $('#tanggal-hari-ini').textContent = tanggalPanjang(sekarang);
 if (staffTerbuka()) bukaStaf();
 muatData();
+muatTestimoni();
 if (KONFIG.API_URL) setInterval(() => { if (!document.hidden) muatData(); }, 120000);   // segarkan tiap 2 menit
 setInterval(() => { if (!document.hidden) perbaruiProgres(); }, 30000);                 // bar progres tiap 30 detik
 addEventListener('visibilitychange', () => { if (!document.hidden) perbaruiProgres(); });

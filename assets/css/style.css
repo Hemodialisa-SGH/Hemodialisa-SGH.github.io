@@ -728,3 +728,112 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 @media (hover:hover){.bhs:not(.is-on):hover{color:#fff}}
 @media (prefers-reduced-motion:no-preference){.bhs{transition:background-color var(--gerak-1) ease,color var(--gerak-1) ease}}
 @media (max-width:560px){.bahasa{order:-1}}
+
+/* ======================================================================
+   FAQ dua kolom, testimoni, dan kotak saran
+   ====================================================================== */
+.mata-garis{display:flex;align-items:center;gap:10px}
+.garis{width:26px;height:2px;background:var(--blue);border-radius:2px;flex:none}
+
+/* --- FAQ --- */
+.faq{display:grid;grid-template-columns:.86fr 1.14fr;gap:48px;align-items:start;margin-top:38px}
+.faq-kiri{position:sticky;top:96px}
+.faq-judul{margin:0 0 14px;font-size:clamp(1.6rem,.9rem + 1.9vw,2.5rem);line-height:1.14}
+.faq-lede{color:var(--ink-soft);margin:0 0 22px;max-width:34ch}
+.btn-wa{display:inline-flex;align-items:center;gap:9px;background:#1FA855;color:#fff;
+  text-decoration:none;font-weight:700;font-size:.95rem;padding:13px 24px;border-radius:999px;
+  box-shadow:0 6px 16px rgba(31,168,85,.3)}
+.faq-daftar{display:grid;gap:11px}
+
+.tanya{margin:0;border-radius:14px;overflow:hidden;background:#fff;
+  border:1px solid var(--line);box-shadow:0 1px 2px rgba(14,59,107,.05)}
+.tanya summary{background:transparent;color:var(--blue-deep);font-weight:600;font-size:1rem;
+  padding:17px 20px;gap:18px}
+.tanya summary .panah{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;
+  background:#E4EFFB;color:var(--blue);flex:none}
+.tanya[open]{border-color:#C3D9EC;box-shadow:0 8px 20px rgba(14,59,107,.09)}
+.tanya[open] summary{color:var(--blue)}
+.tanya[open] summary .panah{background:var(--blue);color:#fff}
+.jawab{background:transparent;border:0;border-radius:0;padding:0 20px 18px 20px}
+.jawab p{color:var(--ink-soft)}
+.tanya[open] .panah{transform:rotate(45deg)}
+@media (hover:hover){
+  .tanya summary:hover{background:#F6FAFD}
+  .tanya summary:hover .panah{background:#D3E5F6}
+  .tanya[open] summary:hover .panah{background:var(--blue-deep)}
+}
+
+/* --- testimoni --- */
+.testi{margin-top:46px}
+.testi-kepala{text-align:center;max-width:62ch;margin:0 auto 26px}
+.testi-kepala .mata-garis{justify-content:center}
+.testi-kepala h2{margin:0 0 10px;font-size:clamp(1.55rem,.9rem + 1.8vw,2.4rem)}
+.testi-lede{color:var(--ink-soft);margin:0 auto;max-width:60ch}
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.testi-kartu{position:relative;background:#fff;border:1px solid var(--line);border-radius:16px;
+  padding:24px;box-shadow:0 1px 2px rgba(14,59,107,.05)}
+.testi-kartu .petik{position:absolute;top:18px;right:20px;color:#DCE8F3;font-size:2rem;
+  line-height:1;font-family:var(--judul);font-weight:800}
+.bintang-tampil{color:#E8A317;letter-spacing:2px;font-size:.95rem;margin-bottom:12px}
+.testi-kata{font-style:italic;color:var(--ink);margin:0 0 18px}
+.testi-orang{display:flex;align-items:center;gap:11px}
+.testi-awal{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;flex:none;
+  background:var(--blue);color:#fff;font-weight:700}
+.testi-nama{display:flex;flex-direction:column;line-height:1.3}
+.testi-nama b{font-size:.95rem;color:var(--blue-deep)}
+.testi-nama small{font-size:.8rem;color:var(--ink-soft)}
+/* max-width:none perlu: aturan umum p{max-width:68ch} membuatnya tidak melebar penuh */
+.testi-kosong{grid-column:1 / -1;max-width:none;background:#fff;border:1px dashed var(--line);
+  border-radius:16px;padding:30px;text-align:center;color:var(--ink-soft)}
+
+/* --- kotak saran --- */
+.saran{display:grid;grid-template-columns:.92fr 1.08fr;gap:48px;align-items:start;margin-top:46px}
+.saran-kiri h2{margin:0 0 14px;font-size:clamp(1.55rem,.9rem + 1.8vw,2.4rem);line-height:1.15}
+.saran-lede{color:var(--ink-soft);margin:0 0 22px;max-width:42ch}
+.saran-poin{list-style:none;margin:0;padding:0;display:grid;gap:13px}
+.saran-poin li{display:flex;align-items:center;gap:11px;font-size:.96rem;font-weight:500;color:var(--ink)}
+.saran-poin svg{color:var(--blue);flex:none}
+
+.saran-kartu{background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px;
+  box-shadow:0 8px 24px rgba(14,59,107,.07);display:grid;gap:7px}
+.saran-kartu h3{font-family:var(--judul);font-weight:700;font-size:1.3rem;margin:0 0 10px;
+  color:var(--blue-deep);letter-spacing:-.02em}
+.saran-kartu label{font-size:.88rem;font-weight:600;color:var(--ink);margin-top:9px}
+.saran-kartu label em{font-style:normal;font-weight:400;color:var(--ink-soft);font-size:.84rem}
+.saran-kartu input[type=text],.saran-kartu select,.saran-kartu textarea{
+  font:inherit;font-size:.95rem;color:var(--ink);padding:11px 13px;border:1px solid var(--line);
+  border-radius:11px;background:#F8FAFC;width:100%;box-sizing:border-box;
+  transition:border-color var(--gerak-1) ease,box-shadow var(--gerak-1) ease,background-color var(--gerak-1) ease}
+.saran-kartu textarea{resize:vertical;min-height:108px}
+.saran-kartu input:focus,.saran-kartu select:focus,.saran-kartu textarea:focus{
+  outline:none;background:#fff;border-color:var(--blue);box-shadow:0 0 0 3px rgba(27,95,168,.13)}
+.sisa-huruf{margin:4px 0 0;font-size:.8rem;color:var(--ink-soft);text-align:right}
+.label-nilai{font-size:.88rem;font-weight:600;color:var(--ink);margin:14px 0 2px}
+
+.bintang{display:flex;gap:4px}
+.bintang button{appearance:none;border:0;background:transparent;padding:2px;cursor:pointer;
+  color:#D5DFE8;line-height:0;border-radius:6px;
+  transition:color var(--gerak-1) ease,transform var(--gerak-2) var(--halus)}
+.bintang button.aktif{color:#E8A317}
+.bintang button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .bintang button:hover{transform:scale(1.14)}
+}
+
+.setuju{display:flex;align-items:flex-start;gap:10px;font-weight:400;font-size:.88rem;
+  color:var(--ink-soft);margin-top:16px;line-height:1.5;cursor:pointer}
+.setuju input{margin-top:3px;accent-color:var(--blue-deep);flex:none}
+#sr-kirim{margin-top:18px;width:100%;padding:14px;border-radius:12px;font-size:.98rem;font-weight:700}
+.sr-pesan{margin:10px 0 0;font-size:.88rem;min-height:1.2em}
+.sr-pesan.ok{color:var(--green)}
+.sr-pesan.err{color:var(--red)}
+
+@media (max-width:980px){
+  .faq,.saran{grid-template-columns:1fr;gap:28px}
+  .faq-kiri{position:static}
+  .testi-grid{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  .saran-kartu{padding:22px 20px}
+  .btn-wa{width:100%;justify-content:center}
+}
