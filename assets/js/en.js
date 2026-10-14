@@ -164,11 +164,9 @@ t158:["Insurance partners",null],
 t159:["Careers",null],
 t160:["Contact us"],
 t161:["Unit bookings ",null,null,"Call or WhatsApp for dialysis scheduling"],
-t162:["Emergency 24h ",null,null,"For medical emergencies"],
 t163:["Unit location ",null,null,null],
 t164:[null,null,". Hemodialysis Unit."],
 t165:["The information on this page is general and does not replace your doctor's explanation."],
-t166:["Emergency 24h"],
 t167:["Chat on WhatsApp"],
 
 /* bagian FAQ dua kolom, testimoni, dan kotak saran */

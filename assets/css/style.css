@@ -329,8 +329,6 @@ main a.btn-ghost{color:var(--blue-deep)}
 /* tombol kontak melayang */
 .melayang{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;
   display:flex;flex-direction:column;align-items:flex-end;gap:10px}
-.fab-ugd{background:var(--red);color:#fff;text-decoration:none;font-size:.82rem;font-weight:600;
-  padding:7px 14px;border-radius:999px;box-shadow:0 4px 12px rgba(176,48,48,.3)}
 .fab-wa{position:relative;display:flex;align-items:center;gap:8px;background:#1FA855;color:#fff;text-decoration:none;
   font-weight:600;font-size:.9rem;padding:10px 16px 10px 12px;border-radius:999px;box-shadow:0 6px 16px rgba(31,168,85,.35)}
 .fab-wa svg{flex:none}
@@ -360,10 +358,9 @@ body{padding-bottom:84px}
 
   /* Tanpa cincin berdenyut: gerak yang berulang terus menarik mata sepanjang
      waktu dan membuat halaman terasa seperti iklan. Tombolnya cukup diam. */
-  .fab-wa,.fab-ugd{animation:naik var(--gerak-3) 180ms both;
+  .fab-wa{animation:naik var(--gerak-3) 180ms both;
     transition:transform var(--gerak-2) var(--halus),box-shadow var(--gerak-2) ease}
-  .fab-ugd{animation-delay:240ms}
-  .fab-wa:hover,.fab-ugd:hover{transform:translateY(-2px)}
+  .fab-wa:hover{transform:translateY(-2px)}
   .fab-wa:hover{box-shadow:0 10px 22px rgba(31,168,85,.45)}
 
   /* pergantian tab */
