@@ -8,9 +8,12 @@
  * Tab bulanan lama tidak diubah dan tetap menjadi arsip.
  *
  * Urutan pemasangan:
- *   1. siapkan()                  → membuat tab Database dan Tampilan, serta PIN awal.
- *   2. imporTabBulan('September') → memindahkan isi tab bulan berjalan ke Database (sekali saja).
- *   3. bangunTampilan()           → menyusun tab Tampilan dari Database.
+ *   1. siapkan()        → membuat tab Database, Tampilan, dan Saran, serta PIN awal.
+ *   2. imporTabBulan()  → memindahkan isi tab bulan berjalan ke Database (sekali saja).
+ *      Tombol Run tidak bisa mengirim argumen, jadi tanpa argumen skrip memakai
+ *      tab yang namanya diawali nama bulan ini; kalau tidak ada, tab yang sedang dibuka.
+ *      Jalankan daftarTab() dulu bila ingin melihat ejaan nama tab yang ada.
+ *   3. bangunTampilan() → menyusun tab Tampilan dari Database.
  *   4. Terapkan → Deployment baru → Aplikasi web.
  *      Jalankan sebagai: Saya. Yang memiliki akses: Siapa saja.
  *      Salin URL yang berakhiran /exec untuk dipasang di situs.
@@ -37,16 +40,16 @@ function siapkan() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sh = ss.getSheetByName(TAB_DB);
   if (!sh) {
-    sh = ss.insertSheet(TAB_DB);
+    sh = ss.insertSheet(TAB_DB, ss.getNumSheets());   // selalu di urutan paling akhir
     sh.getRange(1, 1, 1, KOLOM.length).setValues([KOLOM]).setFontWeight('bold');
     sh.setFrozenRows(1);
     sh.getRange('A:C').setNumberFormat('@');
     sh.setColumnWidths(1, KOLOM.length, 110);
   }
-  if (!ss.getSheetByName(TAB_TAMPIL)) ss.insertSheet(TAB_TAMPIL);
+  if (!ss.getSheetByName(TAB_TAMPIL)) ss.insertSheet(TAB_TAMPIL, ss.getNumSheets());
   let sr = ss.getSheetByName(TAB_SARAN);
   if (!sr) {
-    sr = ss.insertSheet(TAB_SARAN);
+    sr = ss.insertSheet(TAB_SARAN, ss.getNumSheets());
     sr.getRange(1, 1, 1, KOLOM_SARAN.length).setValues([KOLOM_SARAN]).setFontWeight('bold');
     sr.setFrozenRows(1);
     sr.setColumnWidth(5, 420);
@@ -62,8 +65,13 @@ function siapkan() {
  */
 function imporTabBulan(namaTab) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss.getSheetByName(TAB_DB)) siapkan();          // boleh dijalankan langsung
+  if (!namaTab) namaTab = tebakTabBulan_(ss);         // tombol Run tidak mengirim argumen
   const asal = ss.getSheetByName(namaTab);
-  if (!asal) throw new Error('Tab ' + namaTab + ' tidak ditemukan.');
+  if (!asal) {
+    throw new Error('Tab "' + namaTab + '" tidak ditemukan. Tab yang ada: '
+      + ss.getSheets().map(s => s.getName()).join(', '));
+  }
   const nilai = asal.getDataRange().getValues();
   if (nilai.length < 3) throw new Error('Tab ' + namaTab + ' kosong.');
 
@@ -122,6 +130,31 @@ function imporTabBulan(namaTab) {
   }
   SpreadsheetApp.getActive().toast(baris.length + ' reservasi dipindahkan dari tab ' + namaTab + '.');
   return baris.length;
+}
+
+/**
+ * Menentukan tab mana yang diimpor bila imporTabBulan dijalankan lewat tombol Run
+ * (tombol itu tidak bisa mengirim argumen). Urutan tebakan:
+ *   1. tab yang namanya diawali nama bulan berjalan, misal "Oktober" atau "Oktober 2026";
+ *   2. tab yang sedang dibuka, asalkan bukan tab buatan skrip ini.
+ */
+function tebakTabBulan_(ss) {
+  const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const kini = bulan[new Date().getMonth()].toLowerCase();
+  const nama = ss.getSheets().map(s => s.getName());
+  const cocok = nama.filter(n => n.trim().toLowerCase().indexOf(kini) === 0)[0];
+  if (cocok) return cocok;
+  const aktif = ss.getActiveSheet().getName();
+  if ([TAB_DB, TAB_TAMPIL, TAB_SARAN].indexOf(aktif) < 0) return aktif;
+  throw new Error('Tab bulan tidak dikenali. Buka dulu tab bulan yang mau diimpor, '
+    + 'lalu jalankan imporTabBulan lagi. Tab yang ada: ' + nama.join(', '));
+}
+
+/** Menampilkan nama semua tab di Log — untuk memastikan ejaan nama tab. */
+function daftarTab() {
+  const nama = SpreadsheetApp.getActiveSpreadsheet().getSheets().map(s => s.getName());
+  Logger.log(nama.join('\n'));
+  return nama;
 }
 
 /** Menyusun ulang tab Tampilan dari Database, satu bulan penuh. */
