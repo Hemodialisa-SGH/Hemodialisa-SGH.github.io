@@ -4,7 +4,7 @@
   --paper:#EFF3F7;
   --card:#FFFFFF;
   --blue:#1B5FA8;
-  --blue-deep:#0E3B6B;
+  --blue-deep:#17508A;   /* navy dilembutkan; kontras teks putih 8,2:1 */
   --green:#4E9E3E;
   --amber:#B5751A;
   --red:#B03030;
@@ -193,13 +193,14 @@ strong{font-weight:600}
 
 /* ===================== kaki halaman ===================== */
 .kaki{background:var(--blue-deep);color:#C5DBF0;margin-top:44px;padding:52px 0 26px}
-.kaki p{margin:0 0 10px;max-width:40ch}
-.kaki-atas{display:grid;grid-template-columns:1.5fr 1fr 1.35fr;gap:40px;align-items:start}
-.kaki-logo{width:52px;background:#fff;border-radius:10px;padding:5px;display:block;margin-bottom:14px}
-.kaki-nama{font-family:var(--judul);font-weight:800;font-size:1.22rem;color:#fff;line-height:1.25;letter-spacing:-.02em}
+.kaki p{margin:0 0 12px;max-width:38ch;line-height:1.6}
+.kaki-atas{display:grid;grid-template-columns:1.45fr .95fr 1.3fr;gap:30px 48px;align-items:start}
+.kaki-logo{width:50px;background:#fff;border-radius:11px;padding:6px;display:block;margin-bottom:16px}
+.kaki-nama{font-family:var(--judul);font-weight:800;font-size:1.2rem;color:#fff;line-height:1.3;
+  letter-spacing:-.02em;margin-bottom:14px}
 .kaki-nama span{font-weight:500;font-size:.88rem;color:#A9C6E5;letter-spacing:0}
 .kaki-sub{font-size:.73rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-  color:#8FB4DA;margin:22px 0 12px}
+  color:#94BBE0;margin:26px 0 13px;line-height:1.4}
 .kaki-kolom .kaki-sub{margin-top:0}
 
 .kaki-sosial{display:flex;gap:9px;flex-wrap:wrap}
@@ -207,26 +208,29 @@ strong{font-weight:600}
   background:rgba(255,255,255,.09);color:#fff}
 
 .kaki-taut{list-style:none;margin:0;padding:0;display:grid;gap:3px}
-.kaki-taut a{display:inline-flex;align-items:center;gap:9px;color:#DCE9F6;text-decoration:none;
-  font-weight:600;font-size:1rem;padding:7px 0}
+.kaki-taut{max-width:260px}
+.kaki-taut a{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#DCE9F6;
+  text-decoration:none;font-weight:600;font-size:.98rem;padding:8px 0}
 .kaki-taut span{color:#7FA8D2}
 
 .kaki-hubungi{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .kaki-hubungi a{display:flex;gap:13px;align-items:flex-start;text-decoration:none;color:inherit;
-  padding:11px 12px;border-radius:12px}
+  padding:11px 12px;border-radius:12px;margin-left:-12px}
 .kaki-ikon{display:grid;place-items:center;width:40px;height:40px;border-radius:11px;flex:none;
   background:rgba(255,255,255,.12);color:#fff}
 .kaki-isi{display:flex;flex-direction:column;min-width:0}
 .kaki-isi b{color:#fff;font-size:.98rem;font-weight:700}
 .kaki-isi b span{color:#7FA8D2;font-weight:400}
-.kaki-isi em{font-style:normal;font-family:var(--mono);font-size:.86rem;color:#CFE2F4;margin-top:1px}
+.kaki-isi em{font-style:normal;font-family:var(--mono);font-size:.86rem;color:#CFE2F4;margin-top:2px;
+  letter-spacing:-.02em}
+.kaki-isi em.biasa{font-family:var(--sans);font-size:.9rem;letter-spacing:0}
 .kaki-isi small{font-size:.8rem;color:#8FB4DA;margin-top:3px}
 
-.kaki-bawah{display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap;
-  margin-top:34px;padding-top:20px;border-top:1px solid rgba(255,255,255,.14)}
+.kaki-bawah{display:flex;justify-content:space-between;align-items:baseline;gap:14px 32px;flex-wrap:wrap;
+  margin-top:38px;padding-top:22px;border-top:1px solid rgba(255,255,255,.15)}
 .kaki-bawah p{margin:0;max-width:none;font-size:.88rem}
 .kaki-bawah b{color:#fff;font-weight:700}
-.kaki-bawah .note{color:#8FB4DA;font-size:.83rem;max-width:52ch;text-align:right}
+.kaki-bawah .note{color:#94BBE0;font-size:.85rem;max-width:none}
 
 @media (hover:hover){
   .kaki-sosial a:hover{background:rgba(255,255,255,.2)}
