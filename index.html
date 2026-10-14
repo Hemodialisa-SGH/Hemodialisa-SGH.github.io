@@ -7,37 +7,47 @@
 <meta name="description" content="Jadwal, alur pelayanan, edukasi pasien, dan ruang staf Unit Hemodialisis RS Sedayu General Hospital.">
 <meta name="theme-color" content="#0E3B6B">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="assets/img/favicon.svg?v=21" type="image/svg+xml">
-<link rel="icon" href="assets/img/favicon-32.png?v=21" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png?v=21">
+<link rel="icon" href="assets/img/favicon.svg?v=22" type="image/svg+xml">
+<link rel="icon" href="assets/img/favicon-32.png?v=22" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png?v=22">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=21">
+<link rel="stylesheet" href="assets/css/style.css?v=22">
 </head>
 <body>
 
 <a class="skip" href="#utama">Lompat ke konten</a>
 
-<header class="masthead">
-  <div class="wrap masthead-in">
-    <img src="assets/img/logo.png" alt="Logo RS Sedayu General Hospital" class="logo">
-    <div class="masthead-text">
-      <p class="rs">RS Sedayu General Hospital</p>
-      <h1>Unit Hemodialisis</h1>
-    </div>
-    <div class="clock">
-      <p id="tanggal-hari-ini">—</p>
-      <p id="status-bed" class="shift-now"></p>
+<div class="topbar">
+  <div class="wrap topbar-in">
+    <span class="tb"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10.2" r="2.6" fill="#0E3B6B" stroke="none"/></svg>Jl. Wates KM 10, Argomulyo, Sedayu, Bantul</span>
+    <div class="tb-kanan">
+      <a class="tb" href="tel:+6282148871090"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="currentColor" stroke="none"><path d="M6.3 3.5h3l1.6 4-2 1.4a12 12 0 0 0 6.2 6.2l1.4-2 4 1.6v3a1.8 1.8 0 0 1-2 1.8A16.8 16.8 0 0 1 4.5 5.5a1.8 1.8 0 0 1 1.8-2z"/></svg>UGD 24 jam <b>0821-4887-1090</b></a>
+      <a class="tb" href="https://wa.me/6285725251288" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="currentColor" stroke="none"><path d="M12 3.2c-4.9 0-8.8 3.6-8.8 8 0 1.6.5 3.1 1.5 4.4l-1 3.2 3.4-1a9.6 9.6 0 0 0 4.9 1.3c4.9 0 8.8-3.6 8.8-8s-3.9-7.9-8.8-7.9z"/></svg>Unit HD <b>0857-2525-1288</b></a>
+      <span class="tb tb-waktu"><span id="tanggal-hari-ini">—</span><b id="status-bed"></b></span>
     </div>
   </div>
-  <nav class="tabs wrap" aria-label="Navigasi utama">
-    <button class="tab is-on" data-panel="beranda">Beranda</button>
-    <button class="tab" data-panel="jadwal">Jadwal</button>
-    <button class="tab" data-panel="alur">Alur &amp; persiapan</button>
-    <button class="tab" data-panel="edukasi">Edukasi</button>
-    <button class="tab" data-panel="staf">Ruang staf</button>
-  </nav>
+</div>
+
+<header class="masthead">
+  <div class="wrap masthead-in">
+    <a class="merek" href="./">
+      <img src="assets/img/logo.png" alt="" class="logo">
+      <span class="merek-teks">
+        <span class="rs">RS Sedayu General Hospital</span>
+        <h1>Unit Hemodialisis</h1>
+      </span>
+    </a>
+    <nav class="tabs" aria-label="Navigasi utama">
+      <button class="tab is-on" data-panel="beranda">Beranda</button>
+      <button class="tab" data-panel="jadwal">Jadwal</button>
+      <button class="tab" data-panel="alur">Alur &amp; persiapan</button>
+      <button class="tab" data-panel="edukasi">Edukasi</button>
+      <button class="tab" data-panel="staf">Ruang staf</button>
+    </nav>
+    <a class="btn-daftar" href="https://wa.me/6285725251288?text=Halo%2C%20saya%20ingin%20membuat%20reservasi%20hemodialisis" target="_blank" rel="noopener">Buat reservasi</a>
+  </div>
 </header>
 
 <main id="utama" class="wrap">
@@ -74,7 +84,7 @@
     </div>
 
     <figure class="hero-foto">
-      <img src="assets/img/unit-hd.jpg?v=21" width="345" height="474"
+      <img src="assets/img/unit-hd.jpg?v=22" width="345" height="474"
            alt="Perawat memasang akses dialisis pada pasien di Unit Hemodialisis RS Sedayu General Hospital"
            loading="eager" decoding="async">
       <figcaption>Unit Hemodialisis RS Sedayu General Hospital</figcaption>
@@ -291,6 +301,6 @@
   </a>
 </div>
 
-<script src="assets/js/app.js?v=21"></script>
+<script src="assets/js/app.js?v=22"></script>
 </body>
 </html>
