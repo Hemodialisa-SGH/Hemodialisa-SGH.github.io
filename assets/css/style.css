@@ -9,6 +9,9 @@
   --amber:#B5751A;
   --red:#B03030;
   --line:#D5DFE8;
+  --biru-lembut:#2A6CB0;        /* biru FAQ: lebih terang dari biru tua, tetap lolos kontras AA */
+  --biru-lembut-terang:#3C7FC2;
+  --halus:cubic-bezier(.22,.61,.36,1);   /* perlambatan lembut untuk semua gerakan */
   --sans:"Plus Jakarta Sans",system-ui,-apple-system,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,monospace;
   /* judul memakai keluarga yang sama dengan isi, dibedakan oleh ketebalan */
@@ -188,8 +191,67 @@ strong{font-weight:600}
 .bar i{display:block;height:14px;background:var(--blue);border-radius:3px}
 .bar b{font-family:var(--mono);font-weight:500;text-align:right}
 
-.kaki{border-top:1px solid var(--line);background:var(--card);padding:20px 0 28px;margin-top:20px}
-.kaki p{margin:0 0 4px}
+/* ===================== kaki halaman ===================== */
+.kaki{background:var(--blue-deep);color:#C5DBF0;margin-top:44px;padding:52px 0 26px}
+.kaki p{margin:0 0 10px;max-width:40ch}
+.kaki-atas{display:grid;grid-template-columns:1.5fr 1fr 1.35fr;gap:40px;align-items:start}
+.kaki-logo{width:52px;background:#fff;border-radius:10px;padding:5px;display:block;margin-bottom:14px}
+.kaki-nama{font-family:var(--judul);font-weight:800;font-size:1.22rem;color:#fff;line-height:1.25;letter-spacing:-.02em}
+.kaki-nama span{font-weight:500;font-size:.88rem;color:#A9C6E5;letter-spacing:0}
+.kaki-sub{font-size:.73rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:#8FB4DA;margin:22px 0 12px}
+.kaki-kolom .kaki-sub{margin-top:0}
+
+.kaki-sosial{display:flex;gap:9px;flex-wrap:wrap}
+.kaki-sosial a{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;
+  background:rgba(255,255,255,.09);color:#fff}
+
+.kaki-taut{list-style:none;margin:0;padding:0;display:grid;gap:3px}
+.kaki-taut a{display:inline-flex;align-items:center;gap:9px;color:#DCE9F6;text-decoration:none;
+  font-weight:600;font-size:1rem;padding:7px 0}
+.kaki-taut span{color:#7FA8D2}
+
+.kaki-hubungi{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.kaki-hubungi a{display:flex;gap:13px;align-items:flex-start;text-decoration:none;color:inherit;
+  padding:11px 12px;border-radius:12px}
+.kaki-ikon{display:grid;place-items:center;width:40px;height:40px;border-radius:11px;flex:none;
+  background:rgba(255,255,255,.12);color:#fff}
+.kaki-isi{display:flex;flex-direction:column;min-width:0}
+.kaki-isi b{color:#fff;font-size:.98rem;font-weight:700}
+.kaki-isi b span{color:#7FA8D2;font-weight:400}
+.kaki-isi em{font-style:normal;font-family:var(--mono);font-size:.86rem;color:#CFE2F4;margin-top:1px}
+.kaki-isi small{font-size:.8rem;color:#8FB4DA;margin-top:3px}
+
+.kaki-bawah{display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap;
+  margin-top:34px;padding-top:20px;border-top:1px solid rgba(255,255,255,.14)}
+.kaki-bawah p{margin:0;max-width:none;font-size:.88rem}
+.kaki-bawah b{color:#fff;font-weight:700}
+.kaki-bawah .note{color:#8FB4DA;font-size:.83rem;max-width:52ch;text-align:right}
+
+@media (hover:hover){
+  .kaki-sosial a:hover{background:rgba(255,255,255,.2)}
+  .kaki-taut a:hover{color:#fff}
+  .kaki-taut a:hover span{color:#fff}
+  .kaki-hubungi a:hover{background:rgba(255,255,255,.08)}
+  .kaki-hubungi a:hover .kaki-ikon{background:rgba(255,255,255,.22)}
+}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .kaki-sosial a,.kaki-taut a,.kaki-hubungi a,.kaki-ikon{
+    transition:background-color .34s ease,color .34s ease,transform .34s var(--halus)}
+  .kaki-sosial a:hover{transform:translateY(-3px)}
+  .kaki-taut a:hover{transform:translateX(4px)}
+}
+
+@media (max-width:900px){
+  .kaki-atas{grid-template-columns:1fr 1fr;gap:34px}
+  .kaki-merek{grid-column:1 / -1}
+}
+@media (max-width:560px){
+  .kaki{padding-top:40px}
+  .kaki-atas{grid-template-columns:1fr;gap:30px}
+  .kaki-bawah{margin-top:28px}
+  .kaki-bawah .note{text-align:left}
+}
 
 @media (max-width:760px){
   /* yang disembunyikan hanya alamat dan tanggal, bukan nomor UGD */
@@ -217,10 +279,10 @@ strong{font-weight:600}
   .edu:hover{border-top-color:var(--blue)}
 }
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .day,.btn,.bedcard,.edu,.docs li{transition:color .2s ease,background-color .2s ease,border-color .2s ease,transform .2s ease,box-shadow .2s ease}
+  .day,.btn,.bedcard,.edu,.docs li{transition:color .2s ease,background-color .2s ease,border-color .2s ease,transform .34s var(--halus),box-shadow .34s ease}
   .day:hover{transform:translateY(-3px);box-shadow:0 4px 10px rgba(14,59,107,.14)}
-  .bedcard:hover,.edu:hover{transform:translateY(-5px);box-shadow:0 12px 24px rgba(14,59,107,.18)}
-  .docs li:hover{transform:translateX(5px)}
+  .bedcard:hover,.edu:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(14,59,107,.18)}
+  .docs li:hover{transform:translateX(4px)}
   .btn:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(14,59,107,.22)}
 }
 @media (prefers-reduced-motion:no-preference){
@@ -279,7 +341,7 @@ body{padding-bottom:84px}
   /* denyut halus pada tombol WhatsApp */
   .fab-wa::before{content:"";position:absolute;inset:0;border-radius:inherit;background:#1FA855;z-index:-1;
     animation:denyut 2.4s ease-out infinite}
-  .fab-wa,.fab-ugd{animation:naik .5s .6s both;transition:transform .2s ease}
+  .fab-wa,.fab-ugd{animation:naik .5s .6s both;transition:transform .34s var(--halus)}
   .fab-ugd{animation-delay:.7s}
   .fab-wa:hover,.fab-ugd:hover{transform:translateY(-2px)}
 
@@ -302,7 +364,7 @@ body{padding-bottom:84px}
 .promo-teks span{font-size:.84rem;color:#C5DBF0}
 .promo-aksi{flex:none;background:#fff;color:var(--blue-deep);font-weight:600;font-size:.86rem;padding:7px 14px;border-radius:999px}
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .promo{transition:transform .2s ease,box-shadow .2s ease}
+  .promo{transition:transform .34s var(--halus),box-shadow .34s ease}
   .promo:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(14,59,107,.22)}
 }
 
@@ -314,7 +376,7 @@ body{padding-bottom:84px}
 /* ---------- hover tambahan: statistik, tautan, langkah alur, isian form ---------- */
 main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset:3px}
 .stat,.flow li h3,.warn,.slots li{transition:border-color .2s ease,background-color .2s ease,color .2s ease}
-.form-res input,.form-res select{transition:border-color .2s ease,box-shadow .2s ease}
+.form-res input,.form-res select{transition:border-color .2s ease,box-shadow .34s ease}
 .form-res input:hover,.form-res select:hover{border-color:#B7D2EC}
 .form-res input:focus,.form-res select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(27,95,168,.13);outline:none}
 .ceklis-card label{transition:background-color .15s ease;border-radius:6px;padding:2px 4px;margin-left:-4px}
@@ -327,7 +389,7 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   .flow li:hover h3{color:var(--blue-deep)}
 }
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .stat,.flow li::before{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+  .stat,.flow li::before{transition:transform .34s var(--halus),box-shadow .34s ease,border-color .2s ease}
   .stat:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(14,59,107,.1)}
   .flow li:hover::before{transform:scale(1.12)}
 }
@@ -381,14 +443,14 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 
 /* kartu bed: sorotan terasa seperti menekan kaca, bukan sekadar naik */
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .bedcard{transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s ease,border-color .2s ease}
+  .bedcard{transition:transform .38s var(--halus),box-shadow .38s ease,border-color .2s ease}
   .bedcard:hover .maju i{filter:saturate(1.25)}
 }
 
 
 /* bayangan tipis muncul saat masthead menempel, agar batasnya terbaca */
 .masthead{box-shadow:0 0 0 rgba(10,35,64,0)}
-@media (prefers-reduced-motion:no-preference){.masthead{transition:box-shadow .25s ease}}
+@media (prefers-reduced-motion:no-preference){.masthead{transition:box-shadow .38s ease}}
 .masthead.ringkas{box-shadow:0 4px 14px rgba(14,59,107,.13)}
 
 /* ======================================================================
@@ -410,15 +472,15 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 .ik-obat{background:#E4F3E2;color:#3C7E31}
 
 @media (prefers-reduced-motion:no-preference){
-  .edu-ikon{transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s ease}
+  .edu-ikon{transition:transform .4s var(--halus),box-shadow .4s ease}
 }
 @media (hover:hover){
   .edu:hover .tip{background:#EDF4FA}
 }
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .edu{transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s ease,border-color .2s ease}
-  .edu:hover{transform:translateY(-8px);box-shadow:0 18px 34px rgba(14,59,107,.16);border-color:#C9DDEE}
-  .edu:hover .edu-ikon{transform:scale(1.09);box-shadow:0 8px 18px rgba(14,59,107,.14)}
+  .edu{transition:transform .4s var(--halus),box-shadow .4s ease,border-color .2s ease}
+  .edu:hover{transform:translateY(-6px);box-shadow:0 18px 34px rgba(14,59,107,.16);border-color:#C9DDEE}
+  .edu:hover .edu-ikon{transform:scale(1.06);box-shadow:0 8px 18px rgba(14,59,107,.14)}
 }
 
 @media (max-width:760px){
@@ -460,7 +522,7 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 .fakta b{font-size:.72rem;font-weight:600;color:var(--ink-soft);letter-spacing:.02em}
 
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .fakta{transition:transform .22s cubic-bezier(.2,.7,.2,1),box-shadow .22s ease,border-color .2s ease}
+  .fakta{transition:transform .36s var(--halus),box-shadow .36s ease,border-color .2s ease}
   .fakta:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(14,59,107,.12);border-color:#BFD8EE}
 }
 
@@ -487,8 +549,8 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   font-size:.82rem;font-weight:600;padding:9px 14px;border-radius:999px;
   box-shadow:0 3px 10px rgba(14,59,107,.14)}
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .hero-foto img{transition:transform .5s cubic-bezier(.2,.7,.2,1)}
-  .hero-foto:hover img{transform:scale(1.035)}
+  .hero-foto img{transition:transform .6s var(--halus)}
+  .hero-foto:hover img{transform:scale(1.025)}
 }
 @media (max-width:980px){
   .hero-foto{aspect-ratio:16/10}
@@ -573,13 +635,13 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   .poin li:hover{background:#EDF4FA}
 }
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .kartu,.tautan a,.poin li{transition:transform .22s cubic-bezier(.2,.7,.2,1),box-shadow .22s ease,
+  .kartu,.tautan a,.poin li{transition:transform .36s var(--halus),box-shadow .36s ease,
     background-color .2s ease,border-color .2s ease}
   .kartu:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(14,59,107,.1);border-color:#CFE0EF}
   .tautan a:hover{transform:translateX(4px)}
   .tautan a:hover span{color:var(--blue)}
-  .lencana{transition:transform .22s cubic-bezier(.2,.7,.2,1)}
-  .kartu:hover .lencana{transform:scale(1.07)}
+  .lencana{transition:transform .36s var(--halus)}
+  .kartu:hover .lencana{transform:scale(1.05)}
 }
 
 @media (max-width:980px){
@@ -602,7 +664,7 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   box-shadow:0 1px 2px rgba(14,59,107,.06)}
 .tanya summary{
   display:flex;align-items:center;justify-content:space-between;gap:16px;
-  background:var(--blue-deep);color:#fff;font-weight:600;font-size:1rem;
+  background:var(--biru-lembut);color:#fff;font-weight:600;font-size:1rem;
   padding:15px 20px;cursor:pointer;list-style:none;
 }
 .tanya summary::-webkit-details-marker{display:none}
@@ -614,15 +676,15 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 .tanya summary:focus-visible{outline:3px solid var(--green);outline-offset:-3px}
 
 @media (prefers-reduced-motion:no-preference){
-  .panah{transition:transform .25s cubic-bezier(.2,.7,.2,1)}
-  .tanya[open] .jawab{animation:bukaJawab .28s ease both}
+  .panah{transition:transform .38s var(--halus)}
+  .tanya[open] .jawab{animation:bukaJawab .42s var(--halus) both}
   .tanya summary{transition:background-color .2s ease}
 }
 .tanya[open] .panah{transform:rotate(180deg)}
 @keyframes bukaJawab{from{opacity:0;translate:0 -6px}to{opacity:1;translate:0 0}}
 
 @media (hover:hover){
-  .tanya summary:hover{background:var(--blue)}
+  .tanya summary:hover{background:var(--biru-lembut-terang)}
 }
 
 /* catatan edukatif */
