@@ -131,8 +131,8 @@ function masuk() {
 /* ---------------- perpindahan layar ---------------- */
 
 const JUDUL = {
-  gerbang: 'Petugas Unit Hemodialisis',
-  menu: 'Petugas Unit Hemodialisis',
+  gerbang: 'HD Sedayu',
+  menu: 'HD Sedayu',
   reservasi: 'Reservasi',
   tunggu: 'Waiting list',
   register: 'Register pasien dialisis',
@@ -589,3 +589,47 @@ if (pinStaf()) masuk(); else keLayar('gerbang');
 if ('serviceWorker' in navigator) {
   addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
+
+/* ---------------- pemasangan aplikasi ----------------
+   Chrome menawarkan pemasangan lewat peristiwa beforeinstallprompt. Peristiwa
+   itu ditahan, lalu dimunculkan sebagai tombol "Pasang" di bilah atas supaya
+   petugas tidak perlu mencarinya di menu peramban. Safari di iPhone tidak
+   mengenal peristiwa ini, jadi di sana ditampilkan petunjuk singkat. */
+(function pemasangan() {
+  const tombol = $('#pasang');
+  const petunjuk = $('#petunjuk-pasang');
+  const terpasang = matchMedia('(display-mode: standalone)').matches
+    || navigator.standalone === true;
+  let tawaran = null;
+
+  addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    tawaran = e;
+    if (!terpasang) tombol.hidden = false;
+  });
+
+  tombol.addEventListener('click', async () => {
+    if (!tawaran) return;
+    tombol.disabled = true;
+    tawaran.prompt();
+    try { await tawaran.userChoice; } catch (e) {}
+    tawaran = null;
+    tombol.hidden = true;
+    tombol.disabled = false;
+  });
+
+  addEventListener('appinstalled', () => { tombol.hidden = true; if (petunjuk) petunjuk.hidden = true; });
+
+  if (terpasang || !petunjuk) return;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const safariMac = /safari/i.test(navigator.userAgent) && !/chrome|chromium|edg/i.test(navigator.userAgent);
+  setTimeout(() => {
+    if (!tombol.hidden) return;                      // Chrome sudah menawarkan
+    petunjuk.hidden = false;
+    petunjuk.textContent = ios
+      ? 'Memasang di iPhone: tekan tombol Bagikan di Safari, lalu pilih “Tambahkan ke Layar Utama”.'
+      : safariMac
+        ? 'Memasang di Safari: menu Berkas, lalu “Tambahkan ke Dock”.'
+        : 'Memasang: buka menu peramban (tiga titik), lalu pilih “Tambahkan ke layar utama” atau “Instal aplikasi”.';
+  }, 1500);
+})();

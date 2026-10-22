@@ -1,6 +1,6 @@
 {
-  "name": "Petugas HD — RS Sedayu General Hospital",
-  "short_name": "Petugas HD",
+  "name": "HD Sedayu — Petugas Unit Hemodialisis",
+  "short_name": "HD Sedayu",
   "description": "Reservasi, daftar tunggu, register pasien dialisis, dan tindakan harian untuk petugas unit.",
   "start_url": "./petugas.html",
   "scope": "./",

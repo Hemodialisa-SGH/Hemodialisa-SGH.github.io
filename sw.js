@@ -1,7 +1,7 @@
 /* Unit Hemodialisis RS Sedayu General Hospital — service worker
    Naikkan VER setiap kali isi situs berubah, dan samakan angkanya dengan
    ?v= pada tautan style.css dan app.js di index.html. */
-const VER = 63;
+const VER = 64;
 const CACHE = 'hd-rssgh-v' + VER;
 const ASET = [
   './',
@@ -11,18 +11,25 @@ const ASET = [
   `./assets/js/app.js?v=${VER}`,
   `./assets/js/en.js?v=${VER}`,
   './assets/img/logo.png',
-  './assets/img/unit-hd.jpg?v=63',
-  './assets/img/favicon-32.png?v=63',
+  './assets/img/unit-hd.jpg?v=64',
+  './assets/img/favicon-32.png?v=64',
   './manifest.json',
   './petugas.html',
-  './petugas.webmanifest?v=63',
+  './petugas.webmanifest?v=64',
   `./assets/css/petugas.css?v=${VER}`,
   `./assets/js/petugas.js?v=${VER}`,
-  `./assets/img/galeri-1.jpg?v=63`
+  `./assets/img/galeri-1.jpg?v=64`
 ];
 
+/* Satu berkas yang gagal diambil tidak boleh menggagalkan pemasangan service
+   worker: tanpa service worker aktif, peramban menolak memasang aplikasi.
+   Karena itu tiap berkas disimpan sendiri-sendiri dan kegagalannya diabaikan. */
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASET)).then(() => self.skipWaiting()));
+  e.waitUntil(
+    caches.open(CACHE)
+      .then(c => Promise.all(ASET.map(url => c.add(url).catch(() => {}))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', e => {

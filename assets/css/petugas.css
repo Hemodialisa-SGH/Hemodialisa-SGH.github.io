@@ -16,6 +16,8 @@ body.app{padding-bottom:28px}
 .app-bar [hidden]{display:none}
 .app-kembali{flex:none;width:36px;height:36px;display:grid;place-items:center;cursor:pointer;
   border:1px solid var(--line);background:#fff;color:var(--blue-deep);border-radius:10px}
+.app-pasang{flex:none;border:0;background:var(--blue-deep);color:#fff;font:inherit;
+  font-size:.82rem;font-weight:700;padding:8px 14px;border-radius:999px;cursor:pointer}
 .app-kunci{flex:none;border:1px solid #B7D2EC;background:#fff;color:var(--blue-deep);
   font:inherit;font-size:.82rem;font-weight:600;padding:7px 13px;border-radius:999px;cursor:pointer}
 
