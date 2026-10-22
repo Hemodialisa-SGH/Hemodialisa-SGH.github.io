@@ -492,6 +492,7 @@ async function muatData() {
   gambarRekap();
   pasangPilihTanggal();
   gambarDaftarRes();
+  if (staffTerbuka()) perbaruiPilihanBed();
 }
 
 function tanggalTerpilih() {
@@ -653,13 +654,80 @@ $('#kunci-staf').addEventListener('click', () => {
 let EDIT_ID = '';
 const SEMUA_BED = () => KONFIG.BED.concat(KONFIG.BED_TAMBAHAN || []);
 
+/* Pasien yang menunggu bed kosong disimpan dengan "bed" khusus ini. */
+const BED_TUNGGU = 'Daftar tunggu';
+const KUNCI_TUNGGU = 'tunggu';
+const MENIT_SHIFT = { P: 6 * 60, S: 13 * 60 + 30 };
+
 function siapkanFormRes() {
-  const sel = $('#res-bed');
-  if (!sel.options.length) SEMUA_BED().forEach(b => sel.add(new Option(b, b)));
   if (!$('#res-tanggal').value) $('#res-tanggal').value = isoHariIni;
+  perbaruiPilihanBed();
   const aktif = !!KONFIG.API_URL;
   $$('#form-reservasi input, #form-reservasi select, #simpan-res').forEach(el => { el.disabled = !aktif; });
   if (!aktif) pesanRes('Form aktif setelah API_URL Apps Script diisi pada assets/js/app.js.', 'err', true);
+}
+
+/** Siapa yang memakai tiap bed pada tanggal dan shift yang sedang dipilih. */
+function pemakaiBed() {
+  const tanggal = $('#res-tanggal').value;
+  const mulai = MENIT_SHIFT[$('#res-shift').value] ?? MENIT_SHIFT.P;
+  const peta = {};
+  DATA_JADWAL.filter(r => r.tanggal === tanggal && r.mulai === mulai && r.id !== EDIT_ID)
+    .forEach(r => { (peta[r.bed] = peta[r.bed] || []).push(r.inisial || r.nama || '—'); });
+  return peta;
+}
+
+/** Pilihan bed diberi keterangan terisi atau kosong, dan bed terisi dikunci. */
+function perbaruiPilihanBed(pertahankan) {
+  const sel = $('#res-bed');
+  if (!sel) return;
+  const terpakai = pemakaiBed();
+  const pilihanLama = pertahankan === false ? '' : sel.value;
+  sel.innerHTML = '';
+  let adaKosong = false;
+  SEMUA_BED().forEach(b => {
+    const isi = terpakai[normBed(b)];
+    const o = new Option(isi ? `${b} · ${T('terisi', 'taken')} ${isi[0]}` : `${b} · ${T('kosong', 'free')}`, b);
+    o.disabled = !!isi;
+    if (!isi) adaKosong = true;
+    sel.add(o);
+  });
+  const menunggu = (terpakai[KUNCI_TUNGGU] || []).length;
+  sel.add(new Option(menunggu ? `${T(BED_TUNGGU, 'Waiting list')} (${menunggu})` : T(BED_TUNGGU, 'Waiting list'), BED_TUNGGU));
+
+  const masihBisa = [...sel.options].find(o => o.value === pilihanLama && !o.disabled);
+  if (masihBisa) sel.value = pilihanLama;
+  else sel.value = (([...sel.options].find(o => !o.disabled) || {}).value) || BED_TUNGGU;
+
+  gambarStatusBed(terpakai, adaKosong);
+}
+
+/** Deretan penanda status bed di atas formulir. */
+function gambarStatusBed(terpakai, adaKosong) {
+  const wadah = $('#status-bed-form');
+  if (!wadah) return;
+  wadah.innerHTML = '';
+  SEMUA_BED().forEach(b => {
+    const isi = terpakai[normBed(b)];
+    const el = document.createElement('span');
+    el.className = 'chip-bed' + (isi ? ' isi' : '');
+    el.textContent = `${b} · ${isi ? T('terisi', 'taken') + ' ' + isi[0] : T('kosong', 'free')}`;
+    wadah.appendChild(el);
+  });
+  const menunggu = (terpakai[KUNCI_TUNGGU] || []).length;
+  if (menunggu) {
+    const el = document.createElement('span');
+    el.className = 'chip-bed tunggu';
+    el.textContent = `${T('Daftar tunggu', 'Waiting list')}: ${menunggu}`;
+    wadah.appendChild(el);
+  }
+  if (!adaKosong) {
+    const el = document.createElement('span');
+    el.className = 'chip-bed penuh';
+    el.textContent = T('Semua bed terisi — pasien baru masuk daftar tunggu.',
+                       'All beds are taken — new patients go to the waiting list.');
+    wadah.appendChild(el);
+  }
 }
 
 function pesanRes(t, jenis, tetap) {
@@ -681,8 +749,10 @@ function kosongkanForm() {
 function isiForm(r) {
   EDIT_ID = r.id;
   $('#res-tanggal').value = r.tanggal;
-  $('#res-bed').value = SEMUA_BED().find(b => normBed(b) === r.bed) || 'Bed 1';
   $('#res-shift').value = r.mulai >= 12 * 60 ? 'S' : 'P';
+  perbaruiPilihanBed();
+  $('#res-bed').value = r.bed === KUNCI_TUNGGU
+    ? BED_TUNGGU : (SEMUA_BED().find(b => normBed(b) === r.bed) || 'Bed 1');
   $('#res-nama').value = r.nama;
   $('#res-status').value = r.status || 'Pasien Rutin';
   $('#res-rs').value = r.rs; $('#res-alamat').value = r.alamat; $('#res-ket').value = r.ket;
@@ -692,7 +762,11 @@ function isiForm(r) {
   $('#form-reservasi').scrollIntoView({ behavior: GERAK ? 'smooth' : 'auto', block: 'center' });
 }
 
-$('#batal-res').addEventListener('click', () => { kosongkanForm(); pesanRes('Perubahan dibatalkan.', ''); });
+$('#batal-res').addEventListener('click', () => { kosongkanForm(); perbaruiPilihanBed(); pesanRes('Perubahan dibatalkan.', ''); });
+['#res-tanggal', '#res-shift'].forEach(s => {
+  const el = $(s);
+  if (el) el.addEventListener('change', () => perbaruiPilihanBed(false));
+});
 
 /* Dua shift ini sama dengan baris jam di tab bulanan Google Sheet, sehingga
    setiap reservasi dari situs selalu punya tempat di tab itu. */
@@ -725,6 +799,54 @@ $('#simpan-res').addEventListener('click', async () => {
   }
 });
 
+const jamIso = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+
+/** Bed yang belum terpakai pada tanggal dan jam tertentu, termasuk bed Xtra. */
+function bedKosongUntuk(tanggal, mulai, kecualiId) {
+  const dipakai = {};
+  DATA_JADWAL.filter(x => x.tanggal === tanggal && x.mulai === mulai && x.id !== kecualiId)
+    .forEach(x => { dipakai[x.bed] = true; });
+  return SEMUA_BED().filter(b => !dipakai[normBed(b)]);
+}
+
+/** Memindahkan satu pasien dari daftar tunggu ke bed yang masih kosong. */
+function bukaPindah(r, aksi) {
+  const kosong = bedKosongUntuk(r.tanggal, r.mulai, r.id);
+  if (!kosong.length) {
+    pesanRes(T('Belum ada bed kosong pada jam itu, termasuk bed Xtra.',
+               'No bed is free at that time, including the Xtra bed.'), 'err');
+    return;
+  }
+  aksi.innerHTML = '';
+  const sel = document.createElement('select');
+  sel.className = 'pilih-pindah';
+  kosong.forEach(b => sel.add(new Option(b, b)));
+  const ok = document.createElement('button');
+  ok.className = 'ubah';
+  ok.textContent = T('Pindahkan', 'Move');
+  const batal = document.createElement('button');
+  batal.className = 'hapus';
+  batal.textContent = T('Batal', 'Cancel');
+  batal.addEventListener('click', gambarDaftarRes);
+  ok.addEventListener('click', async () => {
+    ok.disabled = batal.disabled = true;
+    ok.textContent = T('Memindahkan…', 'Moving…');
+    try {
+      const balas = await kirimApi({ aksi: 'ubah', id: r.id, data: {
+        tanggal: r.tanggal, mulai: jamIso(r.mulai), selesai: jamIso(r.selesai), bed: sel.value,
+        nama: r.nama, status: r.status, rs: r.rs, alamat: r.alamat, ket: r.ket,
+      } });
+      if (balas && balas.catatan) pesanRes(balas.catatan, 'err', true);
+      else pesanRes(`${r.inisial || r.nama} ${T('dipindahkan ke', 'moved to')} ${sel.value}.`, 'ok');
+      await muatData();
+    } catch (e) {
+      pesanRes(e.message, 'err');
+      gambarDaftarRes();
+    }
+  });
+  aksi.append(sel, ok, batal);
+}
+
 function gambarDaftarRes() {
   const ul = $('#daftar-res');
   if (!ul || !staffTerbuka()) return;
@@ -737,14 +859,26 @@ function gambarDaftarRes() {
   rows.forEach(r => {
     const [y, m, d] = r.tanggal.split('-').map(Number);
     const tgl = new Date(y, m - 1, d);
+    const menunggu = r.bed === KUNCI_TUNGGU;
+    const namaBed = menunggu
+      ? `<b class="tanda-tunggu">${esc(T('Daftar tunggu', 'Waiting list'))}</b>`
+      : esc(SEMUA_BED().find(b => normBed(b) === r.bed) || r.bed);
     const li = document.createElement('li');
+    if (menunggu) li.className = 'res-tunggu';
     li.innerHTML = `<span><b>${HARI[tgl.getDay()].slice(0, 3)} ${d} ${BULAN[m - 1].slice(0, 3)}</b>, `
-      + `${formatJam(r.mulai)}–${formatJam(r.selesai)}, ${esc(SEMUA_BED().find(b => normBed(b) === r.bed) || r.bed)}`
+      + `${formatJam(r.mulai)}–${formatJam(r.selesai)}, ${namaBed}`
       + `<br><span class="kode">${esc(r.inisial || r.nama)}${r.status ? ', ' + esc(r.status) : ''}`
       + `${r.rs ? ', ' + esc(r.rs) : ''}${r.ket ? ', ' + esc(r.ket) : ''}</span></span>`;
     if (r.id) {
       const aksi = document.createElement('span');
       aksi.className = 'res-aksi';
+      if (menunggu) {
+        const p = document.createElement('button');
+        p.className = 'pindah';
+        p.textContent = T('Pindahkan ke bed', 'Move to a bed');
+        p.addEventListener('click', () => bukaPindah(r, aksi));
+        aksi.appendChild(p);
+      }
       const u = document.createElement('button');
       u.className = 'ubah';
       u.textContent = T('Ubah', 'Edit');

@@ -397,10 +397,29 @@ body{padding-bottom:84px}
   .promo:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(14,59,107,.2)}
 }
 
-.res-aksi{display:flex;gap:6px;flex:none}
+.res-aksi{display:flex;gap:6px;flex:none;align-items:center;flex-wrap:wrap}
 .docs .ubah{appearance:none;border:1px solid #B7D2EC;background:#fff;color:var(--blue-deep);font:inherit;
   font-size:.82rem;padding:4px 10px;border-radius:6px;cursor:pointer}
 .docs .ubah:hover{background:#F2F7FC}
+
+/* ---------- daftar tunggu dan penanda bed ---------- */
+.status-bed{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.chip-bed{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:600;
+  padding:5px 12px;border-radius:999px;background:#E7F5EC;color:#1B6B3A;
+  box-shadow:inset 0 0 0 1px rgba(27,107,58,.22)}
+.chip-bed::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.chip-bed.isi{background:#FBECEA;color:#A33322;box-shadow:inset 0 0 0 1px rgba(163,51,34,.22)}
+.chip-bed.tunggu{background:#FDF3E2;color:#8A5A12;box-shadow:inset 0 0 0 1px rgba(138,90,18,.22)}
+.chip-bed.penuh{background:#FDF3E2;color:#8A5A12;box-shadow:none;font-weight:500}
+.chip-bed.penuh::before{display:none}
+.docs li.res-tunggu{border-left:3px solid #E0A33B;padding-left:11px}
+.tanda-tunggu{color:#8A5A12}
+.docs .pindah{appearance:none;border:1px solid #E6C58B;background:#FDF3E2;color:#8A5A12;font:inherit;
+  font-size:.82rem;font-weight:600;padding:4px 10px;border-radius:6px;cursor:pointer}
+.docs .pindah:hover{background:#FBEBD2}
+.pilih-pindah{font:inherit;font-size:.82rem;padding:4px 8px;border-radius:6px;
+  border:1px solid #CBD9E8;background:#fff;color:var(--ink)}
+#res-bed option:disabled{color:#A33322}
 
 /* ---------- hover tambahan: statistik, tautan, langkah alur, isian form ---------- */
 main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset:3px}

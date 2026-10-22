@@ -35,6 +35,8 @@ const KOLOM_SARAN = ['Waktu', 'Nama', 'Kategori', 'Nilai', 'Pesan', 'Izin tampil
 const TAB_TAMPIL = 'Tampilan';
 const KOLOM = ['Tanggal', 'Mulai', 'Selesai', 'Bed', 'Status', 'RS perujuk', 'Alamat', 'Pasien', 'Keterangan', 'ID', 'Dicatat', 'Petugas'];
 const BED = ['Bed 1', 'Bed 2', 'Bed 3', 'Bed 4', 'Xtra'];
+const TUNGGU = 'Tunggu';            // pasien yang menunggu bed kosong
+const JUDUL_TUNGGU = 'WAITING LIST';
 const SESI = { P: ['06:00', '11:00'], S: ['13:30', '19:00'] };   // shift di tab bulanan
 const NAMA_SESI = { P: 'Pagi', S: 'Siang' };
 const TZ = 'Asia/Jakarta';
@@ -100,15 +102,21 @@ function imporTabBulan(namaTab) {
     if (!rentang[0]) continue;
 
     peta.bed.forEach(function (k) {
-      const nama = String(b[k.pasien] || '').trim();
-      if (!nama) return;
-      const kunci = [tanggal, rentang[0], k.bed, nama.toLowerCase()].join('|');
-      if (adaDb[kunci]) return;
-      adaDb[kunci] = true;
-      const ambil = c => (c >= 0 ? String(b[c] || '').trim() : '');
-      baris.push([tanggal, rentang[0], rentang[1], k.bed, ambil(k.status), ambil(k.rs), ambil(k.alamat),
-        nama, ambil(k.ket), Utilities.getUuid().slice(0, 8),
-        Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'), 'impor ' + namaTab]);
+      const isi = String(b[k.pasien] || '').trim();
+      if (!isi) return;
+      // satu sel daftar tunggu bisa memuat beberapa nama, dipisah titik koma
+      const daftar = k.bed === TUNGGU ? isi.split(/[;\n]+/) : [isi];
+      daftar.forEach(function (teks) {
+        const nama = teks.trim();
+        if (!nama) return;
+        const kunci = [tanggal, rentang[0], k.bed, nama.toLowerCase()].join('|');
+        if (adaDb[kunci]) return;
+        adaDb[kunci] = true;
+        const ambil = c => (c >= 0 ? String(b[c] || '').trim() : '');
+        baris.push([tanggal, rentang[0], rentang[1], k.bed, ambil(k.status), ambil(k.rs), ambil(k.alamat),
+          nama, ambil(k.ket), Utilities.getUuid().slice(0, 8),
+          Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'), 'impor ' + namaTab]);
+      });
     });
   }
 
@@ -139,6 +147,7 @@ function petaTabBulan_(sh) {
     const m = v.match(/^bed\s*(\d+)/);
     if (m) bed.push({ bed: 'Bed ' + m[1], awal: i });
     else if (v.indexOf('xtra') === 0 || v.indexOf('ekstra') === 0) bed.push({ bed: 'Xtra', awal: i });
+    else if (v.indexOf('waiting') >= 0 || v.indexOf('tunggu') >= 0) bed.push({ bed: TUNGGU, awal: i });
   });
   if (!bed.length) {
     throw new Error('Baris judul tab "' + sh.getName() + '" tidak memuat kolom BED 1 dan seterusnya.');
@@ -249,6 +258,37 @@ function cariBarisShift_(sh, peta, info, iso, shift) {
   return 0;
 }
 
+/**
+ * Menambahkan blok kolom WAITING LIST di ujung kanan tab bulanan bila belum ada.
+ * Kolom bed yang sudah ada tidak digeser maupun diubah isinya.
+ */
+function buatBlokTunggu_(sh) {
+  const kolom = sh.getLastColumn() + 1;
+  sh.getRange(1, kolom, 1, 2).merge().setValue(JUDUL_TUNGGU)
+    .setFontWeight('bold').setHorizontalAlignment('center');
+  sh.getRange(2, kolom, 1, 2).setValues([['Pasien', 'Ket']])
+    .setFontWeight('bold').setHorizontalAlignment('center');
+  sh.setColumnWidth(kolom, 220);
+  return petaTabBulan_(sh);
+}
+
+/**
+ * Menulis ulang sel daftar tunggu untuk satu tanggal dan shift, diambil dari
+ * tab Database. Semua nama yang menunggu digabung dalam satu sel, dipisah
+ * titik koma, supaya satu baris shift bisa memuat lebih dari satu pasien.
+ */
+function tulisTungguKeTabBulan_(sh, peta, baris, iso, shift) {
+  const k = peta.bed.filter(x => x.bed === TUNGGU)[0];
+  if (!k) return 'Tersimpan di Database, tetapi kolom ' + JUDUL_TUNGGU + ' tidak ditemukan.';
+  const daftar = bacaDb()
+    .filter(r => r.bed === TUNGGU && r.tanggal === iso && r.mulai === SESI[shift][0])
+    .map(r => r.nama)
+    .filter(n => n);
+  selTulis_(sh, baris, k.pasien + 1).setValue(daftar.join('; '));
+  if (k.ket >= 0) selTulis_(sh, baris, k.ket + 1).setValue(daftar.length ? 'menunggu bed kosong' : '');
+  return '';
+}
+
 /** Sel yang benar untuk ditulis bila baris itu bagian dari sel gabung. */
 function selTulis_(sh, baris, kolom) {
   const sel = sh.getRange(baris, kolom);
@@ -268,11 +308,17 @@ function tulisKeTabBulan_(d) {
     if (!sh) return 'Tersimpan di Database. Tab bulan untuk ' + d.tanggal + ' belum ada, jadi belum tertulis di sana.';
     const shift = shiftDariJam_(d.mulai);
     if (!shift) return 'Tersimpan di Database. Jamnya di luar shift Pagi dan Siang, jadi tidak ditulis ke tab ' + sh.getName() + '.';
-    const peta = petaTabBulan_(sh);
+    let peta = petaTabBulan_(sh);
     const info = bulanDariNamaTab_(sh.getName());
     const baris = cariBarisShift_(sh, peta, info, d.tanggal, shift);
     if (!baris) return 'Tersimpan di Database. Baris tanggal ' + d.tanggal + ' shift ' + NAMA_SESI[shift]
       + ' tidak ada di tab ' + sh.getName() + ', jadi belum tertulis di sana.';
+
+    if (d.bed === TUNGGU) {
+      if (!peta.bed.filter(x => x.bed === TUNGGU).length) peta = buatBlokTunggu_(sh);
+      return tulisTungguKeTabBulan_(sh, peta, baris, d.tanggal, shift);
+    }
+
     const k = peta.bed.filter(x => x.bed === d.bed)[0];
     if (!k) return 'Tersimpan di Database. Kolom ' + d.bed + ' tidak ada di tab ' + sh.getName() + '.';
 
@@ -303,6 +349,10 @@ function hapusDariTabBulan_(d) {
     const peta = petaTabBulan_(sh);
     const baris = cariBarisShift_(sh, peta, bulanDariNamaTab_(sh.getName()), d.tanggal, shift);
     if (!baris) return '';
+    if (d.bed === TUNGGU) {
+      if (!peta.bed.filter(x => x.bed === TUNGGU).length) return '';
+      return tulisTungguKeTabBulan_(sh, peta, baris, d.tanggal, shift);
+    }
     const k = peta.bed.filter(x => x.bed === d.bed)[0];
     if (!k) return '';
     const selPasien = selTulis_(sh, baris, k.pasien + 1);
@@ -499,7 +549,7 @@ function simpan(d, idLama) {
   if (!tanggal) return { ok: false, pesan: 'Tanggal belum diisi.' };
   if (!mulai || !selesai) return { ok: false, pesan: 'Jam mulai dan selesai belum diisi.' };
   if (menit(selesai) <= menit(mulai)) return { ok: false, pesan: 'Jam selesai harus setelah jam mulai.' };
-  if (BED.indexOf(bed) < 0) return { ok: false, pesan: 'Bed tidak dikenal.' };
+  if (BED.indexOf(bed) < 0 && bed !== TUNGGU) return { ok: false, pesan: 'Bed tidak dikenal.' };
   if (!nama) return { ok: false, pesan: 'Nama pasien belum diisi.' };
 
   // Hanya dua shift yang punya barisnya sendiri di tab bulanan, supaya setiap
@@ -509,9 +559,12 @@ function simpan(d, idLama) {
     return { ok: false, pesan: 'Jam mulai harus 06:00 untuk shift Pagi atau 13:30 untuk shift Siang.' };
   }
 
-  const bentrok = bacaDb().filter(r => r.id !== idLama && r.tanggal === tanggal && r.bed === bed
-    && menit(mulai) < menit(r.selesai) && menit(r.mulai) < menit(selesai))[0];
-  if (bentrok) return { ok: false, pesan: bed + ' sudah terisi ' + bentrok.mulai + '–' + bentrok.selesai + ' pada tanggal itu.' };
+  // Daftar tunggu boleh diisi beberapa pasien sekaligus, jadi tidak dicek bentrok.
+  if (bed !== TUNGGU) {
+    const bentrok = bacaDb().filter(r => r.id !== idLama && r.tanggal === tanggal && r.bed === bed
+      && menit(mulai) < menit(r.selesai) && menit(r.mulai) < menit(selesai))[0];
+    if (bentrok) return { ok: false, pesan: bed + ' sudah terisi ' + bentrok.mulai + '–' + bentrok.selesai + ' pada tanggal itu.' };
+  }
 
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB_DB);
   const petugas = String(d.petugas || '').trim().slice(0, 30);
@@ -678,6 +731,7 @@ function rentangJam(teks) {
 
 function normBed(v) {
   const s = String(v || '').trim().toLowerCase();
+  if (s.indexOf('tunggu') >= 0 || s.indexOf('waiting') >= 0) return TUNGGU;
   if (s.indexOf('xtra') === 0 || s.indexOf('ekstra') === 0) return 'Xtra';
   const m = s.match(/(\d+)/);
   return m ? 'Bed ' + m[1] : '';
