@@ -450,23 +450,46 @@ $('#tunggu-tanggal').addEventListener('change', gambarTunggu);
 /* Nama yang bisa dipilih: pasien di Sheet register, ditambah pasien yang baru
    muncul di jadwal — termasuk yang reservasinya diketik langsung di Sheet —
    supaya petugas tidak perlu mengetik ulang namanya. */
-function namaPasienTersedia() {
-  const daftar = DATA_PASIEN.map(p => ({ nama: p.nama, kurang: p.kurang || [], terdaftar: true }));
-  const sudah = {};
-  daftar.forEach(p => { sudah[samarkan(p.nama)] = true; });
-  DATA_JADWAL.forEach(r => {
-    const nama = r.nama || '';
-    if (!nama || sudah[samarkan(nama)]) return;
-    sudah[samarkan(nama)] = true;
-    daftar.push({ nama: nama, kurang: [], terdaftar: false });
-  });
-  return daftar.sort((a, b) => a.nama.localeCompare(b.nama));
+function namaPasienTersedia(tanggal) {
+  const daftarRegister = DATA_PASIEN.map(p => ({ nama: p.nama, kurang: p.kurang || [], terdaftar: true }));
+  const diRegister = {};
+  daftarRegister.forEach(p => { diRegister[samarkan(p.nama)] = p; });
+
+  /* Hanya pasien yang punya reservasi pada tanggal itu yang ditawarkan,
+     supaya daftarnya pendek dan sesuai pekerjaan hari itu. Bila tanggal itu
+     belum ada reservasinya sama sekali, seluruh pasien terdaftar ditampilkan
+     agar formulir tetap bisa dipakai. */
+  if (tanggal) {
+    const hasil = [];
+    const sudah = {};
+    DATA_JADWAL.filter(r => r.tanggal === tanggal).forEach(r => {
+      const nama = r.nama || '';
+      const kunci = samarkan(nama);
+      if (!nama || sudah[kunci]) return;
+      sudah[kunci] = true;
+      const p = diRegister[kunci];
+      hasil.push({ nama: nama, kurang: p ? p.kurang : [], terdaftar: !!p });
+    });
+    if (hasil.length) return hasil.sort((a, b) => a.nama.localeCompare(b.nama));
+  }
+  return daftarRegister.sort((a, b) => a.nama.localeCompare(b.nama));
+}
+
+/* Tanggal yang menentukan isi daftar: tanggal HD untuk isian tindakan,
+   tanggal registrasi untuk isian register dan tombol salin di atasnya. */
+function tanggalUntuk(el) {
+  const tindakan = $('#form-tindakan');
+  const dalamTindakan = tindakan && el && tindakan.contains(el);
+  const isian = dalamTindakan
+    ? $('#form-tindakan [data-kunci="Tanggal HD"]')
+    : $('#form-register [data-kunci="Tanggal Registrasi"]');
+  return isian ? isian.value : '';
 }
 
 function isiPilihanPasien(el, pilihan) {
   el.innerHTML = '';
   el.add(new Option('— pilih pasien —', ''));
-  namaPasienTersedia().forEach(p => {
+  namaPasienTersedia(tanggalUntuk(el)).forEach(p => {
     const tanda = !p.terdaftar ? ' — belum di register' : (p.kurang.length ? ' — data belum lengkap' : '');
     el.add(new Option(p.nama + tanda, p.nama));
   });
@@ -586,6 +609,11 @@ function pasangForm(opsi) {
   const tombol = $(opsi.tombol);
   gambarForm(wadah, KONFIG[opsi.bidang]);
   wadah.addEventListener('change', e => {
+    // daftar nama mengikuti tanggal, jadi disusun ulang saat tanggalnya diganti
+    if (e.target.dataset.kunci === 'Tanggal HD' || e.target.dataset.kunci === 'Tanggal Registrasi') {
+      segarkanPilihanPasien();
+      return;
+    }
     if (e.target.dataset.kunci !== 'Nama Pasien') return;
     lengkapiDariRegister(e.target.value);
     const catatan = catatanKelengkapan(e.target.value);
