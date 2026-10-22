@@ -74,7 +74,7 @@ const KONFIG = {
   FORM_TINDAKAN: [
     { k: 'Tanggal HD', l: 'Tanggal HD', t: 'date', v: 'hariini' },
     { k: 'Jam selesai', l: 'Jam selesai', t: 'time' },
-    { k: 'Nama Pasien', l: 'Nama pasien', t: 'text', lebar: 2, ph: 'Tn Budi Santoso', d: 'daftar-pasien' },
+    { k: 'Nama Pasien', l: 'Nama pasien', t: 'pasien', lebar: 2 },
     { k: 'Tanggal Lahir', l: 'Tanggal lahir', t: 'date' },
     { k: 'Jenis Kelamin', l: 'Jenis kelamin', t: 'select', o: ['Laki-laki', 'Perempuan'] },
     { k: 'Jenis Tindakan', l: 'Jenis tindakan', t: 'select', o: ['Rutin', 'Traveling', 'Ekstra',
@@ -1341,7 +1341,11 @@ function gambarFormUmum(wadah, bidang) {
     if (f.lebar === 2) lab.className = 'span2';
     lab.appendChild(document.createTextNode(f.l));
     let el;
-    if (f.t === 'select') {
+    if (f.t === 'pasien') {
+      el = document.createElement('select');
+      el.dataset.pasien = '1';
+      isiPilihanPasien(el);
+    } else if (f.t === 'select') {
       el = document.createElement('select');
       const pilihan = typeof f.o === 'string' ? (KONFIG[f.o] || []) : (f.o || []);
       pilihan.forEach(o => el.add(new Option(o, o)));
@@ -1382,6 +1386,18 @@ let DATA_PASIEN = [];
 
 const samarkan = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
+/** Mengisi dropdown nama pasien dari daftar register, pilihan lama dipertahankan. */
+function isiPilihanPasien(el, pilihan) {
+  el.innerHTML = '';
+  el.add(new Option(T('— pilih pasien —', '— choose a patient —'), ''));
+  DATA_PASIEN.forEach(p => el.add(new Option(p.nama, p.nama)));
+  el.dataset.bawaan = '';
+  if (pilihan) {
+    if (![...el.options].some(o => o.value === pilihan)) el.add(new Option(pilihan, pilihan));
+    el.value = pilihan;
+  }
+}
+
 /** Mengisi satu isian; untuk pilihan, dicari opsi yang paling mendekati. */
 function isiSatu(el, nilai, timpa) {
   if (!el || !nilai) return;
@@ -1399,7 +1415,14 @@ function isiSatu(el, nilai, timpa) {
 function isiBidang(wadahSel, data, timpa) {
   const wadah = $(wadahSel);
   if (!wadah) return;
-  Object.keys(data).forEach(k => isiSatu(wadah.querySelector(`[data-kunci="${k}"]`), data[k], timpa));
+  Object.keys(data).forEach(k => {
+    const el = wadah.querySelector(`[data-kunci="${k}"]`);
+    // pasien yang belum terdaftar tetap bisa dipilih setelah ditambahkan ke daftar
+    if (el && el.dataset.pasien && data[k] && ![...el.options].some(o => o.value === data[k])) {
+      el.add(new Option(data[k], data[k]));
+    }
+    isiSatu(el, data[k], timpa);
+  });
 }
 
 /** Membuka bagian yang bisa disimpan tempat sebuah isian berada. */
@@ -1466,6 +1489,7 @@ async function muatPasien() {
         dl.appendChild(o);
       });
     }
+    $$('select[data-pasien]').forEach(el => isiPilihanPasien(el, el.value));
   } catch (e) { /* daftar pasien hanya pelengkap, diabaikan bila gagal */ }
 }
 
