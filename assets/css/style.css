@@ -215,7 +215,8 @@ strong{font-weight:600}
 @media (min-width:981px){.lipat .form-res{grid-template-columns:repeat(3,minmax(0,1fr))}}
 /* dua isian Sheet berdampingan: masing-masing cukup dua kolom isian */
 .staf-dua-isian{align-items:start}
-.staf-dua-isian > .lipat{margin:0;height:100%}
+/* tiap kolom setinggi isinya sendiri: membuka satu tidak menarik tetangganya */
+.staf-dua-isian > .lipat{margin:0;align-self:start}
 @media (min-width:981px){
   .staf-dua-isian .form-res{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 }
