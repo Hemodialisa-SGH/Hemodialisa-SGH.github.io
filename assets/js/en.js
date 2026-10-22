@@ -168,7 +168,7 @@ t161:["Unit bookings ",null,null,"Call or WhatsApp for dialysis scheduling"],
 t163:["Unit location ",null,null,null],
 t164:[null,null,". Hemodialysis Unit."],
 t165:["The information on this page is general and does not replace your doctor's explanation."],
-t167:["Chat on WhatsApp"],
+t166:["Emergency ","24 Hours"], t167:["Chat on WhatsApp"],
 
 /* bagian FAQ dua kolom, testimoni, dan kotak saran */
 s01:["Common questions"],

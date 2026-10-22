@@ -337,8 +337,15 @@ main a.btn-ghost{color:var(--blue-deep)}
 .fab-wa{position:relative;display:flex;align-items:center;gap:8px;background:#1FA855;color:#fff;text-decoration:none;
   font-weight:600;font-size:.9rem;padding:10px 16px 10px 12px;border-radius:999px;box-shadow:0 6px 16px rgba(31,168,85,.35)}
 .fab-wa svg{flex:none}
+/* tombol IGD 24 jam di atas tombol WhatsApp — membuka tanda bahaya di tab
+   Edukasi; sengaja tanpa nomor telepon */
+.fab-igd{display:flex;align-items:center;gap:8px;border:0;cursor:pointer;font:inherit;
+  background:#D8463C;color:#fff;font-weight:600;font-size:.9rem;
+  padding:10px 16px 10px 12px;border-radius:999px;box-shadow:0 6px 16px rgba(216,70,60,.35)}
+.fab-igd svg{flex:none}
+.fab-igd b{font-weight:700}
 body{padding-bottom:84px}
-@media (max-width:760px){.fab-wa span{display:none}.fab-wa{padding:12px}}
+@media (max-width:760px){.fab-wa span,.fab-igd span{display:none}.fab-wa,.fab-igd{padding:12px}}
 
 @media (prefers-reduced-motion:no-preference){
   /* header masuk saat halaman dibuka */
@@ -363,10 +370,12 @@ body{padding-bottom:84px}
 
   /* Tanpa cincin berdenyut: gerak yang berulang terus menarik mata sepanjang
      waktu dan membuat halaman terasa seperti iklan. Tombolnya cukup diam. */
-  .fab-wa{animation:naik var(--gerak-3) 180ms both;
+  .fab-wa,.fab-igd{animation:naik var(--gerak-3) 180ms both;
     transition:transform var(--gerak-2) var(--halus),box-shadow var(--gerak-2) ease}
-  .fab-wa:hover{transform:translateY(-2px)}
+  .fab-igd{animation-delay:120ms}
+  .fab-wa:hover,.fab-igd:hover{transform:translateY(-2px)}
   .fab-wa:hover{box-shadow:0 10px 22px rgba(31,168,85,.45)}
+  .fab-igd:hover{box-shadow:0 10px 22px rgba(216,70,60,.45)}
 
   /* pergantian tab */
   .panel:not([hidden]){animation:pudar var(--gerak-2) ease both}
