@@ -942,11 +942,17 @@ function gambarPanelTunggu() {
   }
   rows.forEach((r, i) => {
     const li = document.createElement('li');
-    li.className = 'res-tunggu';
+    li.className = 'res-item res-tunggu';
     const shift = (r.mulai ?? 0) >= 12 * 60 ? T('Siang', 'Afternoon') : T('Pagi', 'Morning');
-    li.innerHTML = `<span><b>${i + 1}. ${esc(r.inisial || r.nama)}</b>`
-      + `<br><span class="kode">${shift} ${formatJam(r.mulai)}–${formatJam(r.selesai)}`
-      + `${r.status ? ', ' + esc(r.status) : ''}${r.rs ? ', ' + esc(r.rs) : ''}</span></span>`;
+    const label = [r.status, r.rs].filter(Boolean)
+      .map(v => `<span class="res-label">${esc(v)}</span>`).join('');
+    const utama = document.createElement('div');
+    utama.className = 'res-utama';
+    utama.innerHTML = `<p class="res-kepala"><b>${i + 1}. ${esc(r.inisial || r.nama)}</b>`
+      + `<span class="res-bed res-bed-tunggu">${shift}</span>`
+      + `<span class="res-jam">${formatJam(r.mulai)}–${formatJam(r.selesai)}</span></p>`
+      + (label ? `<p class="res-pasien">${label}</p>` : '');
+    li.appendChild(utama);
     if (r.id) {
       const aksi = document.createElement('span');
       aksi.className = 'res-aksi';
@@ -974,22 +980,37 @@ function gambarDaftarRes() {
     const [y, m, d] = r.tanggal.split('-').map(Number);
     const tgl = new Date(y, m - 1, d);
     const menunggu = r.bed === KUNCI_TUNGGU;
-    const namaBed = menunggu
-      ? `<b class="tanda-tunggu">${esc(T('Daftar tunggu', 'Waiting list'))}</b>`
-      : esc(SEMUA_BED().find(b => normBed(b) === r.bed) || r.bed);
+    const namaBed = menunggu ? T('Daftar tunggu', 'Waiting list')
+      : (SEMUA_BED().find(b => normBed(b) === r.bed) || r.bed);
     const li = document.createElement('li');
-    if (menunggu) li.className = 'res-tunggu';
-    li.innerHTML = `<span><b>${HARI[tgl.getDay()].slice(0, 3)} ${d} ${BULAN[m - 1].slice(0, 3)}</b>, `
-      + `${formatJam(r.mulai)}–${formatJam(r.selesai)}, ${namaBed}`
-      + `<br><span class="kode">${esc(r.inisial || r.nama)}${r.status ? ', ' + esc(r.status) : ''}`
-      + `${r.rs ? ', ' + esc(r.rs) : ''}${r.ket ? ', ' + esc(r.ket) : ''}</span></span>`;
+    li.className = 'res-item' + (menunggu ? ' res-tunggu' : '');
+
+    const utama = document.createElement('div');
+    utama.className = 'res-utama';
+    const label = [r.status, r.rs].filter(Boolean)
+      .map(v => `<span class="res-label">${esc(v)}</span>`).join('');
+    utama.innerHTML = `<p class="res-kepala"><b>${HARI[tgl.getDay()].slice(0, 3)}, ${d} ${BULAN[m - 1].slice(0, 3)}</b>`
+      + `<span class="res-jam">${formatJam(r.mulai)}–${formatJam(r.selesai)}</span>`
+      + `<span class="res-bed${menunggu ? ' res-bed-tunggu' : ''}">${esc(namaBed)}</span></p>`
+      + `<p class="res-pasien"><span class="res-nama">${esc(r.inisial || r.nama)}</span>${label}</p>`;
+    if (r.ket) {
+      const ket = document.createElement('p');
+      ket.className = 'res-ket';
+      ket.textContent = r.ket;
+      ket.title = T('Klik untuk membuka seluruh keterangan', 'Click to show the full note');
+      ket.addEventListener('click', () => ket.classList.toggle('terbuka'));
+      utama.appendChild(ket);
+    }
+    li.appendChild(utama);
+
     if (r.id) {
       const aksi = document.createElement('span');
       aksi.className = 'res-aksi';
       if (menunggu) {
         const p = document.createElement('button');
         p.className = 'pindah';
-        p.textContent = T('Pindahkan ke bed', 'Move to a bed');
+        p.textContent = T('Pindahkan', 'Move');
+        p.title = T('Pindahkan ke bed yang masih kosong', 'Move to a free bed');
         p.addEventListener('click', () => bukaPindah(r, aksi));
         aksi.appendChild(p);
       }
