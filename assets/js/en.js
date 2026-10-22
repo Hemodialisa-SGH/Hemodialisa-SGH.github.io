@@ -202,6 +202,10 @@ s28:["Send feedback"],
 
 f01:["Date"], f02:["Bed"], f03:["Shift"],
 t200:["Morning · 06.00–11.00"], t201:["Afternoon · 13.30–19.00"],
+t210:["Unit facilities"],
+t211:["The rooms and supporting facilities of the Dialysis Unit at RS Sedayu General Hospital."],
+t212:["Dialysis room"], t213:["Dialysis machines"], t214:["Nurse station"],
+t215:["Single patient room"], t216:["Water treatment plant"], t217:["Registration area"],
 f05:["Patient name"], f06:["Patient status"], f07:["Referring hospital"],
 f08:["Address (optional)"], f09:["Notes (optional)"], f10:["Entered by (optional)"],
 
