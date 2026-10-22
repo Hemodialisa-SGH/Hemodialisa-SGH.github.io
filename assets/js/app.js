@@ -1433,7 +1433,7 @@ function bukaBagian(sel) {
 }
 
 /** Melengkapi kedua formulir dari data pasien yang sudah tercatat di register. */
-function lengkapiDariRegister(nama) {
+function lengkapiDariRegister(nama, timpa) {
   const p = DATA_PASIEN.find(x => samarkan(x.nama) === samarkan(nama));
   if (!p) return false;
   isiBidang('#form-register', {
@@ -1442,14 +1442,14 @@ function lengkapiDariRegister(nama) {
     'Akses Vaskuler': p.akses, 'Lokasi Akses': p.lokasi, 'Tindakan': p.tindakan,
     'Unit Asal': p.unitAsal, 'Unit Tujuan': p.unitTujuan, 'Penanggung Jawab': p.penjamin,
     'Status Pasien': p.status, 'Antrean BPJS': p.bpjs,
-  });
+  }, timpa);
   const jenis = /travel/i.test(p.tindakan) ? 'Traveling' : /ekstra/i.test(p.tindakan) ? 'Ekstra'
     : /rutin/i.test(p.tindakan) ? 'Rutin' : '';
   isiBidang('#form-tindakan', {
     'Tanggal Lahir': p.lahir, 'DPJP': p.dpjp, 'Penjamin': p.penjamin,
     'Akses': /cdl/i.test(p.akses) ? 'CDL (Catheter Double Lumen)' : p.akses,
     'Jenis Tindakan': jenis,
-  });
+  }, timpa);
   return true;
 }
 
@@ -1521,6 +1521,21 @@ function pasangFormSheet(opsi) {
     }
   });
 }
+
+(function pasangPakaiData() {
+  const sel = $('#pilih-pasien-register');
+  const tombol = $('#pakai-pasien-register');
+  if (!sel || !tombol) return;
+  sel.dataset.pasien = '1';              // ikut disegarkan saat daftar pasien dimuat
+  isiPilihanPasien(sel);
+  tombol.addEventListener('click', () => {
+    const nama = sel.value;
+    if (!nama) return pesanUmum('#register-pesan', 'Pilih nama pasien lebih dahulu.', 'err');
+    isiBidang('#form-register', { 'Nama Pasien': nama }, true);
+    lengkapiDariRegister(nama, true);
+    pesanUmum('#register-pesan', `Data ${nama} disalin. Ubah seperlunya sebelum disimpan.`, 'ok');
+  });
+})();
 
 (function siapkanFormSheet() {
   const dl = $('#rs-rujukan');

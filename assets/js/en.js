@@ -207,6 +207,7 @@ t221:["Patients waiting for a free bed on the date chosen in the form beside thi
 t222:["Dialysis patient register"],
 t223:["Saved to the unit's dialysis patient register in Google Sheets."],
 t224:["Save to register"],
+t228:["Copy from a registered patient"], t229:["Use data"],
 t225:["Daily HD procedures"],
 t226:["Saved to the current month tab of the daily procedure sheet."],
 t227:["Save procedure"],
