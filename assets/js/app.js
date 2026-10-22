@@ -416,12 +416,13 @@ function gambarPapan(target, iso, tampilkanInisial) {
     else if (iso !== isoHariIni && isi.length) {
       status = `${isi.length} ` + T('reservasi', isi.length > 1 ? 'bookings' : 'booking');
       kelas = 'dipesan';
-    } else { status = T('Kosong', 'Free'); kelas = 'kosong'; }
+    } else { status = ''; kelas = 'kosong'; }        // bed kosong tanpa label
 
     const kartu = document.createElement('article');
     kartu.className = 'bedcard is-' + kelas;
     kartu.style.setProperty('--i', grid.children.length);
-    kartu.innerHTML = `<header><h3>${esc(b)}</h3><span class="pill">${status}</span></header>`;
+    kartu.innerHTML = `<header><h3>${esc(b)}</h3>`
+      + (status ? `<span class="pill">${status}</span>` : '') + '</header>';
 
     if (aktif) {
       const siapa = tampilkanInisial && aktif.inisial ? ` · ${esc(aktif.inisial)}` : '';
@@ -764,7 +765,7 @@ function perbaruiPilihanBed(pertahankan) {
   let adaKosong = false;
   SEMUA_BED().forEach(b => {
     const isi = terpakai[normBed(b)];
-    const o = new Option(isi ? `${b} · ${T('terisi', 'taken')} ${isi[0]}` : `${b} · ${T('kosong', 'free')}`, b);
+    const o = new Option(isi ? `${b} · ${T('terisi', 'taken')} ${isi[0]}` : b, b);
     o.disabled = !!isi;
     if (!isi) adaKosong = true;
     sel.add(o);
@@ -784,11 +785,13 @@ function gambarStatusBed(terpakai, adaKosong) {
   const wadah = $('#status-bed-form');
   if (!wadah) return;
   wadah.innerHTML = '';
+  // hanya bed yang sedang terisi yang ditampilkan; bed kosong tidak perlu penanda
   SEMUA_BED().forEach(b => {
     const isi = terpakai[normBed(b)];
+    if (!isi) return;
     const el = document.createElement('span');
-    el.className = 'chip-bed' + (isi ? ' isi' : '');
-    el.textContent = `${b} · ${isi ? T('terisi', 'taken') + ' ' + isi[0] : T('kosong', 'free')}`;
+    el.className = 'chip-bed isi';
+    el.textContent = `${b} · ${T('terisi', 'taken')} ${isi[0]}`;
     wadah.appendChild(el);
   });
   const menunggu = (terpakai[KUNCI_TUNGGU] || []).length;
@@ -1634,7 +1637,7 @@ function pasangFormSheet(opsi) {
   if (!new URLSearchParams(location.search).has('petugas')) return;
   document.documentElement.classList.add('mode-app');
   const manifest = $('link[rel="manifest"]');
-  if (manifest) manifest.href = 'petugas.webmanifest?v=62';
+  if (manifest) manifest.href = 'petugas.webmanifest?v=63';
   const tab = $$('.tab').find(t => t.dataset.panel === 'staf');
   if (tab) tab.click();
   ['#form-reservasi', '#daftar-tunggu', '#form-register', '#form-tindakan'].forEach(bukaBagian);

@@ -1,7 +1,7 @@
 /* Unit Hemodialisis RS Sedayu General Hospital — service worker
    Naikkan VER setiap kali isi situs berubah, dan samakan angkanya dengan
    ?v= pada tautan style.css dan app.js di index.html. */
-const VER = 62;
+const VER = 63;
 const CACHE = 'hd-rssgh-v' + VER;
 const ASET = [
   './',
@@ -10,12 +10,12 @@ const ASET = [
   `./assets/js/app.js?v=${VER}`,
   `./assets/js/en.js?v=${VER}`,
   './assets/img/logo.png',
-  './assets/img/unit-hd.jpg?v=62',
-  './assets/img/favicon-32.png?v=62',
+  './assets/img/unit-hd.jpg?v=63',
+  './assets/img/favicon-32.png?v=63',
   './manifest.json',
   './petugas.html',
-  './petugas.webmanifest?v=62',
-  `./assets/img/galeri-1.jpg?v=62`
+  './petugas.webmanifest?v=63',
+  `./assets/img/galeri-1.jpg?v=63`
 ];
 
 self.addEventListener('install', e => {

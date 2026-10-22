@@ -201,7 +201,7 @@ t228:["Copy from a registered patient"], t229:["Use data"], t231:["Staff app"],
 t225:["Daily HD procedures"],
 t226:["Saved to the current month tab of the daily procedure sheet."],
 t227:["Save procedure"],
-t212:["Dialysis room"], t215:["Single patient room"],
+t212:["Dialysis room"],
 f05:["Patient name"], f06:["Patient status"], f07:["Referring hospital"],
 f08:["Address (optional)"], f09:["Notes (optional)"], f10:["Entered by (optional)"],
 
