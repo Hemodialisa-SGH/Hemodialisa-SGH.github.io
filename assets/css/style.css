@@ -7,6 +7,9 @@
   --blue-deep:#17508A;   /* navy dilembutkan; kontras teks putih 8,2:1 */
   --green:#4E9E3E;
   --amber:#B5751A;
+  --kuning:#E6B152;            /* aksen kartu reservasi */
+  --kuning-tua:#D59A2E;
+  --kuning-lembut:#FDF6E7;
   --red:#B03030;
   --line:#D5DFE8;
   --biru-lembut:#2A6CB0;        /* biru FAQ: lebih terang dari biru tua, tetap lolos kontras AA */
@@ -401,6 +404,16 @@ main a.btn-ghost{color:var(--blue-deep)}
 .fab-igd svg{flex:none}
 .fab-igd b{font-weight:700}
 body{padding-bottom:84px}
+
+/* Foto unit sebagai latar halaman. Dipasang pada lapisan tersendiri yang
+   diam saat halaman digulir, dengan kabut putih tebal di atasnya supaya
+   tulisan dan kartu tetap jelas terbaca. */
+.latar-foto{position:fixed;inset:0;z-index:-2;background:var(--paper)}
+.latar-foto::before{content:"";position:absolute;inset:0;
+  background:url("../img/galeri-1.jpg?v=62") center/cover no-repeat;
+  opacity:.38;filter:saturate(.8)}
+.latar-foto::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(239,243,247,.72) 0%,rgba(239,243,247,.82) 45%,rgba(239,243,247,.9) 100%)}
 @media (max-width:760px){.fab-wa span,.fab-igd span{display:none}.fab-wa,.fab-igd{padding:12px}}
 
 @media (prefers-reduced-motion:no-preference){
@@ -458,6 +471,22 @@ body{padding-bottom:84px}
 .docs .ubah{appearance:none;border:1px solid #B7D2EC;background:#fff;color:var(--blue-deep);font:inherit;
   font-size:.82rem;padding:4px 10px;border-radius:6px;cursor:pointer}
 .docs .ubah:hover{background:#F2F7FC}
+
+/* ---------- mode aplikasi petugas: ./?petugas=1 ---------- */
+.app-label{display:none;font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--blue-deep);background:#EAF2FA;border-radius:999px;padding:6px 12px}
+html.mode-app .app-label{display:inline-flex;margin-left:auto}
+html.mode-app .topbar,
+html.mode-app .melayang,
+html.mode-app .kaki,
+html.mode-app .btn-daftar,
+html.mode-app .tab:not([data-panel="staf"]),
+html.mode-app .panel:not(#panel-staf){display:none}
+html.mode-app .tabs{display:none}
+html.mode-app body{padding-bottom:28px}
+html.mode-app .latar-foto::before{opacity:.1}
+html.mode-app #panel-staf{animation:none}
+html.mode-app .staf-head h2{font-size:1.25rem}
 
 /* ---------- baris reservasi: satu kolom isi, satu kolom tombol ---------- */
 .docs li.res-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;
@@ -900,9 +929,16 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 }
 
 /* daftar reservasi sebagai kartu sejajar */
-.kartu-res{grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;align-items:start}
-.kartu-res li.res-item{grid-template-columns:minmax(0,1fr);align-content:start;gap:10px;padding:14px 16px}
-.kartu-res .res-aksi{border-top:1px solid var(--line);padding-top:10px;flex-wrap:wrap;width:100%}
+.kartu-res{grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;
+  align-items:stretch;grid-auto-rows:1fr}
+.kartu-res li.res-item{grid-template-columns:minmax(0,1fr);grid-template-rows:1fr auto;
+  align-content:start;gap:10px;padding:14px 16px 12px;height:100%;
+  border-left:4px solid var(--kuning);background:var(--card)}
+.kartu-res li.res-item:nth-child(even){background:var(--kuning-lembut);border-left-color:var(--kuning-tua)}
+.kartu-res .res-aksi{border-top:1px solid rgba(14,59,107,.1);padding-top:10px;
+  flex-wrap:wrap;width:100%;align-self:end}
+.kartu-res li.res-tunggu{border-left-width:4px;border-left-color:var(--kuning-tua);
+  background:var(--kuning-lembut);padding-left:16px}
 
 /* statistik ringkas di ruang staf */
 .stats-staf{display:grid;grid-template-columns:minmax(0,240px);margin:0 0 14px}

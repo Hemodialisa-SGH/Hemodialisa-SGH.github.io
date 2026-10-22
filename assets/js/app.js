@@ -1627,6 +1627,19 @@ function pasangFormSheet(opsi) {
   tandai();
 })();
 
+/* ---------- mode aplikasi petugas ----------
+   Alamat ./?petugas=1 membuka halaman yang sama tanpa bagian umum: hanya
+   ruang staf, supaya bisa dipasang sebagai aplikasi tersendiri di ponsel. */
+(function modePetugas() {
+  if (!new URLSearchParams(location.search).has('petugas')) return;
+  document.documentElement.classList.add('mode-app');
+  const manifest = $('link[rel="manifest"]');
+  if (manifest) manifest.href = 'petugas.webmanifest?v=62';
+  const tab = $$('.tab').find(t => t.dataset.panel === 'staf');
+  if (tab) tab.click();
+  ['#form-reservasi', '#daftar-tunggu', '#form-register', '#form-tindakan'].forEach(bukaBagian);
+})();
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
