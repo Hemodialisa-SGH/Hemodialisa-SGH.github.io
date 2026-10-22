@@ -44,7 +44,7 @@ const KONFIG = {
      Google Sheet register; server mencocokkannya lewat baris judul. */
   FORM_REGISTER: [
     { k: 'Tanggal Registrasi', l: 'Tanggal registrasi', t: 'date', v: 'hariini' },
-    { k: 'Nama Pasien', l: 'Nama pasien', t: 'text', lebar: 2, ph: 'Tn Budi Santoso' },
+    { k: 'Nama Pasien', l: 'Nama pasien', t: 'text', lebar: 2, ph: 'Tn Budi Santoso', d: 'daftar-pasien' },
     { k: 'No. RM', l: 'No. RM', t: 'text', ph: '002451' },
     { k: 'No. KTP', l: 'No. KTP', t: 'text', ph: '3404xxxxxxxxxxxx' },
     { k: 'Tanggal Lahir', l: 'Tanggal lahir', t: 'date' },
@@ -74,7 +74,7 @@ const KONFIG = {
   FORM_TINDAKAN: [
     { k: 'Tanggal HD', l: 'Tanggal HD', t: 'date', v: 'hariini' },
     { k: 'Jam selesai', l: 'Jam selesai', t: 'time' },
-    { k: 'Nama Pasien', l: 'Nama pasien', t: 'text', lebar: 2, ph: 'Tn Budi Santoso' },
+    { k: 'Nama Pasien', l: 'Nama pasien', t: 'text', lebar: 2, ph: 'Tn Budi Santoso', d: 'daftar-pasien' },
     { k: 'Tanggal Lahir', l: 'Tanggal lahir', t: 'date' },
     { k: 'Jenis Kelamin', l: 'Jenis kelamin', t: 'select', o: ['Laki-laki', 'Perempuan'] },
     { k: 'Jenis Tindakan', l: 'Jenis tindakan', t: 'select', o: ['Rutin', 'Traveling', 'Ekstra',
@@ -682,7 +682,7 @@ function terimaPin(pin) {
   $('#pin-pesan').textContent = '';
   $('#pin').value = '';
   bukaStaf();
-  if (KONFIG.API_URL) muatData();   // muat ulang agar inisial ikut terkirim
+  if (KONFIG.API_URL) { muatData(); muatPasien(); }   // muat ulang agar inisial ikut terkirim
 }
 
 /* PIN diperiksa di server bila sudah tersambung ke Apps Script, supaya nomornya
@@ -865,7 +865,8 @@ $('#simpan-res').addEventListener('click', async () => {
   try {
     const balas = await kirimApi(EDIT_ID ? { aksi: 'ubah', id: EDIT_ID, data } : { aksi: 'tambah', data });
     if (balas && balas.catatan) pesanRes(balas.catatan, 'err', true);
-    else pesanRes(`${EDIT_ID ? 'Perubahan' : 'Reservasi'} ${data.bed} ${data.mulai.replace(':', '.')}–${data.selesai.replace(':', '.')} tersimpan di Database dan tab bulan.`, 'ok');
+    else pesanRes(`${EDIT_ID ? 'Perubahan' : 'Reservasi'} ${data.bed} ${data.mulai.replace(':', '.')}–${data.selesai.replace(':', '.')} tersimpan. Datanya disalin ke register dan tindakan harian.`, 'ok');
+    isiDariReservasi(data);
     kosongkanForm();
     await muatData();
   } catch (e) {
@@ -992,6 +993,18 @@ function gambarDaftarRes() {
         p.addEventListener('click', () => bukaPindah(r, aksi));
         aksi.appendChild(p);
       }
+      const salin = document.createElement('button');
+      salin.className = 'ubah';
+      salin.textContent = T('Pakai data', 'Use data');
+      salin.title = T('Salin data pasien ini ke register dan tindakan harian',
+                      'Copy this patient into the register and daily procedure forms');
+      salin.addEventListener('click', () => {
+        isiDariReservasi(r);
+        pesanRes(`${r.inisial || r.nama}: ${T('data disalin ke register dan tindakan harian.',
+          'copied into the register and daily procedure forms.')}`, 'ok');
+        $('#form-register').scrollIntoView({ behavior: GERAK ? 'smooth' : 'auto', block: 'center' });
+      });
+      aksi.appendChild(salin);
       const u = document.createElement('button');
       u.className = 'ubah';
       u.textContent = T('Ubah', 'Edit');
@@ -1342,6 +1355,7 @@ function gambarFormUmum(wadah, bidang) {
       else if (f.v) el.value = f.v;
     }
     el.dataset.kunci = f.k;
+    el.dataset.bawaan = el.value;   // nilai awal dianggap kosong saat diisi otomatis
     lab.appendChild(el);
     wadah.appendChild(lab);
   });
@@ -1362,11 +1376,107 @@ function pesanUmum(sel, teks, jenis, tetap) {
   if (!tetap) pesanUmum[sel] = setTimeout(() => { el.textContent = ''; }, 8000);
 }
 
+/* ---- mengisi sendiri dari data yang sudah ada, supaya tidak mengetik dua kali ---- */
+
+let DATA_PASIEN = [];
+
+const samarkan = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+/** Mengisi satu isian; untuk pilihan, dicari opsi yang paling mendekati. */
+function isiSatu(el, nilai, timpa) {
+  if (!el || !nilai) return;
+  if (!timpa && el.value && el.value !== el.dataset.bawaan) return;
+  if (el.tagName === 'SELECT') {
+    const cari = samarkan(nilai);
+    const cocok = [...el.options].find(o => samarkan(o.value) === cari)
+      || [...el.options].find(o => cari && (samarkan(o.value).indexOf(cari) === 0 || cari.indexOf(samarkan(o.value)) === 0));
+    if (cocok) el.value = cocok.value;
+  } else {
+    el.value = nilai;
+  }
+}
+
+function isiBidang(wadahSel, data, timpa) {
+  const wadah = $(wadahSel);
+  if (!wadah) return;
+  Object.keys(data).forEach(k => isiSatu(wadah.querySelector(`[data-kunci="${k}"]`), data[k], timpa));
+}
+
+/** Membuka bagian yang bisa disimpan tempat sebuah isian berada. */
+function bukaBagian(sel) {
+  const el = $(sel);
+  const bagian = el && el.closest('details');
+  if (bagian) bagian.open = true;
+}
+
+/** Melengkapi kedua formulir dari data pasien yang sudah tercatat di register. */
+function lengkapiDariRegister(nama) {
+  const p = DATA_PASIEN.find(x => samarkan(x.nama) === samarkan(nama));
+  if (!p) return false;
+  isiBidang('#form-register', {
+    'Tanggal Lahir': p.lahir, 'No. RM': p.rm, 'Alamat': p.alamat, 'No. Handphone': p.hp,
+    'DPJP': p.dpjp, 'Diagnosis': p.diagnosis, 'Penyebab': p.penyebab, 'Penyerta': p.penyerta,
+    'Akses Vaskuler': p.akses, 'Lokasi Akses': p.lokasi, 'Tindakan': p.tindakan,
+    'Unit Asal': p.unitAsal, 'Unit Tujuan': p.unitTujuan, 'Penanggung Jawab': p.penjamin,
+    'Status Pasien': p.status, 'Antrean BPJS': p.bpjs,
+  });
+  const jenis = /travel/i.test(p.tindakan) ? 'Traveling' : /ekstra/i.test(p.tindakan) ? 'Ekstra'
+    : /rutin/i.test(p.tindakan) ? 'Rutin' : '';
+  isiBidang('#form-tindakan', {
+    'Tanggal Lahir': p.lahir, 'DPJP': p.dpjp, 'Penjamin': p.penjamin,
+    'Akses': /cdl/i.test(p.akses) ? 'CDL (Catheter Double Lumen)' : p.akses,
+    'Jenis Tindakan': jenis,
+  });
+  return true;
+}
+
+/** Menyalin isi reservasi ke formulir register dan tindakan harian. */
+function isiDariReservasi(r) {
+  const rutin = /rutin/i.test(r.status || '');
+  const selesai = typeof r.selesai === 'number' ? jamIso(r.selesai) : (r.selesai || '');
+  isiBidang('#form-register', {
+    'Nama Pasien': r.nama, 'Tanggal Registrasi': r.tanggal, 'Alamat': r.alamat,
+    'Unit Asal': r.rs, 'Tindakan': rutin ? 'HD Rutin' : '', 'Status Pasien': rutin ? 'Rutin' : '',
+  }, true);
+  isiBidang('#form-tindakan', {
+    'Nama Pasien': r.nama, 'Tanggal HD': r.tanggal, 'Jam selesai': selesai,
+    'Jenis Tindakan': rutin ? 'Rutin' : '', 'keterangan': r.ket,
+  }, true);
+  lengkapiDariRegister(r.nama);
+  bukaBagian('#form-register');
+  bukaBagian('#form-tindakan');
+}
+
+/** Mengambil daftar pasien dari Sheet register, hanya setelah PIN benar. */
+async function muatPasien() {
+  if (!KONFIG.API_URL || !staffTerbuka()) return;
+  try {
+    const url = KONFIG.API_URL + (KONFIG.API_URL.includes('?') ? '&' : '?')
+      + 'aksi=pasien&pin=' + encodeURIComponent(pinStaf()) + '&t=' + Date.now();
+    const res = await fetch(url);
+    const d = await res.json();
+    if (!d.ok || !d.pasien) return;
+    DATA_PASIEN = d.pasien;
+    const dl = $('#daftar-pasien');
+    if (dl) {
+      dl.innerHTML = '';
+      DATA_PASIEN.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p.nama;
+        dl.appendChild(o);
+      });
+    }
+  } catch (e) { /* daftar pasien hanya pelengkap, diabaikan bila gagal */ }
+}
+
 function pasangFormSheet(opsi) {
   const wadah = $(opsi.wadah);
   const tombol = $(opsi.tombol);
   if (!wadah || !tombol) return;
   gambarFormUmum(wadah, KONFIG[opsi.bidang]);
+  wadah.addEventListener('change', e => {
+    if (e.target.dataset.kunci === 'Nama Pasien') lengkapiDariRegister(e.target.value);
+  });
   tombol.addEventListener('click', async () => {
     const data = bacaFormUmum(wadah);
     if (!data['Nama Pasien']) return pesanUmum(opsi.pesan, 'Isi nama pasien lebih dahulu.', 'err');
@@ -1378,6 +1488,7 @@ function pasangFormSheet(opsi) {
       const balas = await kirimApi({ aksi: opsi.aksi, data });
       pesanUmum(opsi.pesan, balas.catatan || opsi.sukses, balas.catatan ? 'err' : 'ok', !!balas.catatan);
       gambarFormUmum(wadah, KONFIG[opsi.bidang]);
+      if (opsi.aksi === 'register') muatPasien();
     } catch (e) {
       pesanUmum(opsi.pesan, e.message, 'err', true);
     } finally {

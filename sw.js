@@ -1,7 +1,7 @@
 /* Unit Hemodialisis RS Sedayu General Hospital — service worker
    Naikkan VER setiap kali isi situs berubah, dan samakan angkanya dengan
    ?v= pada tautan style.css dan app.js di index.html. */
-const VER = 55;
+const VER = 56;
 const CACHE = 'hd-rssgh-v' + VER;
 const ASET = [
   './',
@@ -10,8 +10,8 @@ const ASET = [
   `./assets/js/app.js?v=${VER}`,
   `./assets/js/en.js?v=${VER}`,
   './assets/img/logo.png',
-  './assets/img/unit-hd.jpg?v=55',
-  './assets/img/favicon-32.png?v=55',
+  './assets/img/unit-hd.jpg?v=56',
+  './assets/img/favicon-32.png?v=56',
   './manifest.json'
 ];
 

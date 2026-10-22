@@ -507,6 +507,11 @@ function doGet(e) {
   try {
     const p = (e && e.parameter) || {};
     if (p.aksi === 'testimoni') return json({ ok: true, testimoni: ambilTestimoni() });
+    if (p.aksi === 'pasien') {
+      // daftar pasien memuat data pribadi, jadi hanya untuk petugas ber-PIN
+      if (!cekPin(p.pin).ok) return json({ ok: false, pesan: 'PIN tidak cocok.' });
+      return json({ ok: true, pasien: daftarPasien() });
+    }
     const staf = cekPin(p.pin).ok;
     const hariIni = hariIniIso();
     const semua = bacaDb();
@@ -693,6 +698,51 @@ function simpanTindakan(d) {
   const hasil = tulisBarisSheet_(sh, d);
   if (hasil.ok && !hasil.catatan && sh.getName()) hasil.tab = sh.getName();
   return hasil;
+}
+
+/** yyyy-MM-dd dari sel tanggal, baik berupa Date maupun teks dd/MM/yyyy. */
+function isoDariSel_(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, TZ, 'yyyy-MM-dd');
+  const t = String(v == null ? '' : v).trim();
+  const m = t.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (m) return m[3] + '-' + dua(Number(m[2])) + '-' + dua(Number(m[1]));
+  return /^\d{4}-\d{2}-\d{2}$/.test(t) ? t : '';
+}
+
+/**
+ * Daftar pasien dari Sheet register, dipakai situs untuk mengisi sendiri
+ * kolom yang sudah pernah dicatat. Hanya dikirim bila PIN staf benar.
+ */
+function daftarPasien() {
+  const ss = SpreadsheetApp.openById(SHEET_REGISTER);
+  const sh = ss.getSheetByName(TAB_REGISTER) || ss.getSheets()[0];
+  const peta = petaKolomSheet_(sh);
+  const akhir = sh.getLastRow();
+  if (akhir <= peta.baris) return [];
+  const nilai = sh.getRange(peta.baris + 1, 1, akhir - peta.baris, peta.lebar).getValues();
+  const ambil = (b, nama) => {
+    const c = peta.kolom[nama];
+    return c === undefined ? '' : String(b[c] == null ? '' : b[c]).trim();
+  };
+  const sudah = {}, keluar = [];
+  for (let i = nilai.length - 1; i >= 0; i--) {      // baris terbaru yang dipakai
+    const b = nilai[i];
+    const nama = ambil(b, 'nama pasien');
+    const kunci = nama.toLowerCase();
+    if (!nama || sudah[kunci]) continue;
+    sudah[kunci] = true;
+    keluar.push({
+      nama: nama,
+      lahir: isoDariSel_(peta.kolom['tanggal lahir'] !== undefined ? b[peta.kolom['tanggal lahir']] : ''),
+      rm: ambil(b, 'no. rm'), alamat: ambil(b, 'alamat'), hp: ambil(b, 'no. handphone'),
+      dpjp: ambil(b, 'dpjp'), diagnosis: ambil(b, 'diagnosis'), akses: ambil(b, 'akses vaskuler'),
+      lokasi: ambil(b, 'lokasi akses'), penjamin: ambil(b, 'penanggung jawab'),
+      unitAsal: ambil(b, 'unit asal'), unitTujuan: ambil(b, 'unit tujuan'),
+      status: ambil(b, 'status pasien'), tindakan: ambil(b, 'tindakan'),
+      penyebab: ambil(b, 'penyebab'), penyerta: ambil(b, 'penyerta'), bpjs: ambil(b, 'antrean bpjs'),
+    });
+  }
+  return keluar.reverse();
 }
 
 /** Diagnostik: menampilkan nama kolom yang terbaca di kedua Sheet tujuan. */
