@@ -935,20 +935,37 @@ function gambarCeklis() {
   const tersimpan = bacaCeklis();
   wrap.innerHTML = '';
   KONFIG.CEKLIS.forEach((grup, gi) => {
-    const card = document.createElement('div');
-    card.className = 'ceklis-card';
-    card.innerHTML = `<h4>${grup.judul}</h4>`;
+    // tiap kelompok ceklis tersimpan rapi, dibuka saat petugas memerlukannya
+    const card = document.createElement('details');
+    card.className = 'ceklis-card lipat';
+    const kepala = document.createElement('summary');
+    kepala.innerHTML = `<h4>${grup.judul}</h4><span class="hitung"></span>`
+      + '<span class="lipat-panah" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16"'
+      + ' fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"'
+      + ' stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>';
+    card.appendChild(kepala);
+    const hitung = kepala.querySelector('.hitung');
+    const kotak = [];
+    const perbaruiHitung = () => {
+      const selesai = kotak.filter(k => k.checked).length;
+      hitung.textContent = `${selesai}/${kotak.length}`;
+      hitung.classList.toggle('penuh', selesai === kotak.length && kotak.length > 0);
+    };
     grup.butir.forEach((b, bi) => {
       const id = `c${gi}_${bi}`;
       const lab = document.createElement('label');
       lab.innerHTML = `<input type="checkbox" id="${id}"${tersimpan[id] ? ' checked' : ''}><span>${b}</span>`;
-      lab.querySelector('input').addEventListener('change', e => {
+      const kotakIni = lab.querySelector('input');
+      kotak.push(kotakIni);
+      kotakIni.addEventListener('change', e => {
         const d = bacaCeklis();
         d[id] = e.target.checked;
         simpanCeklis(d);
+        perbaruiHitung();
       });
       card.appendChild(lab);
     });
+    perbaruiHitung();
     wrap.appendChild(card);
   });
 }

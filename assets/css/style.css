@@ -196,6 +196,30 @@ strong{font-weight:600}
 .ceklis-card h4{margin:0 0 8px;font-size:.95rem}
 .ceklis-card label{display:flex;gap:8px;align-items:flex-start;font-size:.9rem;margin-bottom:6px;cursor:pointer}
 .ceklis-card input{margin-top:4px;accent-color:var(--blue-deep)}
+/* bagian ruang staf yang bisa disimpan agar halaman tidak panjang */
+.lipat{border:1px solid var(--line);border-radius:10px;background:var(--card);
+  padding:0 16px;margin:14px 0}
+.lipat > summary{display:flex;align-items:center;gap:10px;list-style:none;cursor:pointer;
+  padding:12px 0;color:var(--blue-deep)}
+.lipat > summary::-webkit-details-marker{display:none}
+.lipat > summary::marker{content:""}
+.lipat > summary h3,.lipat > summary h4{margin:0;flex:1}
+.lipat > summary:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+.lipat > summary .lipat-panah{display:grid;place-items:center;width:26px;height:26px;
+  border-radius:50%;background:#EDF3F9;color:var(--blue-deep);flex:none}
+.lipat[open] > summary .lipat-panah{rotate:180deg}
+.lipat[open] > summary{border-bottom:1px solid var(--line);margin-bottom:12px}
+.lipat > *:last-child{margin-bottom:14px}
+.lipat .hitung{font-family:var(--mono);font-size:.8rem;color:var(--ink-soft);flex:none}
+.lipat .hitung.penuh{color:#1B6B3A;font-weight:600}
+details.ceklis-card{padding:0 14px}
+details.ceklis-card > summary{padding:12px 0}
+@media (prefers-reduced-motion:no-preference){
+  .lipat > summary .lipat-panah{transition:rotate var(--gerak-2) var(--halus),
+    background-color var(--gerak-1) ease}
+}
+@media (hover:hover){.lipat > summary:hover .lipat-panah{background:#DCE7F2}}
+
 .ceklis-aksi{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
 .bars{display:grid;gap:6px;max-width:520px;margin-top:8px}
 .bar{display:grid;grid-template-columns:76px 1fr 44px;gap:10px;align-items:center;font-size:.85rem}
@@ -594,18 +618,9 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
    kolom teks di sebelahnya */
 .hero-foto{position:relative;margin:0;border-radius:16px;overflow:hidden;align-self:start;
   box-shadow:0 14px 30px rgba(14,59,107,.18);background:#DCE7F2;aspect-ratio:1/1.08}
-.hero-foto img{display:block;width:100%;height:100%;object-fit:cover;object-position:62% 58%}
-.hero-foto figcaption{position:absolute;left:14px;bottom:14px;right:14px;
-  background:rgba(255,255,255,.93);backdrop-filter:blur(6px);color:var(--blue-deep);
-  font-size:.82rem;font-weight:600;padding:9px 14px;border-radius:999px;
-  box-shadow:0 3px 10px rgba(14,59,107,.14)}
-@media (hover:hover) and (prefers-reduced-motion:no-preference){
-  .hero-foto img{transition:transform .5s var(--halus)}
-  .hero-foto:hover img{transform:scale(1.015)}
-}
+
 @media (max-width:980px){
   .hero-foto{aspect-ratio:16/10}
-  .hero-foto img{object-position:60% 50%}
 }
 @media (max-width:560px){
   .hero-foto{aspect-ratio:4/3}
@@ -633,34 +648,30 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   /* gambar dilepas dari alur agar tidak ikut menentukan tinggi baris; tinggi
      foto lalu murni mengikuti kolom teks di sebelahnya */
   .hero-foto{aspect-ratio:auto;align-self:stretch;min-height:430px}
-  .hero-foto img{position:absolute;inset:0;width:100%;height:100%}
+  .hero .hero-foto .slide-jalur{position:absolute;inset:0;height:auto}
 }
 
-/* ---------- galeri fasilitas: slide show ---------- */
-.galeri{margin-top:24px}
-.galeri-kepala{margin-bottom:14px}
-.galeri-kepala h2{margin:0 0 4px}
-.slide{position:relative;border-radius:16px;overflow:hidden;background:#DCE7F2;
-  box-shadow:0 14px 30px rgba(14,59,107,.18)}
-.slide-jalur{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
-  scrollbar-width:none;-ms-overflow-style:none}
-.slide-jalur::-webkit-scrollbar{display:none}
-.slide-jalur:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
-.slide-item{flex:0 0 100%;scroll-snap-align:center;position:relative;margin:0;aspect-ratio:3/2}
-.slide-item img{display:block;width:100%;height:100%;object-fit:cover}
-.slide-item figcaption{position:absolute;left:14px;bottom:14px;
+/* ---------- slide show foto di bingkai hero ---------- */
+.hero-foto .slide-jalur{display:flex;width:100%;height:100%;overflow-x:auto;
+  scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none}
+.hero-foto .slide-jalur::-webkit-scrollbar{display:none}
+.hero-foto .slide-jalur:focus-visible{outline:2px solid var(--green);outline-offset:-3px}
+.slide-item{flex:0 0 100%;scroll-snap-align:center;position:relative;height:100%}
+.slide-item img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 58%}
+.slide-ket{position:absolute;left:14px;bottom:14px;max-width:calc(100% - 120px);
   background:rgba(255,255,255,.93);backdrop-filter:blur(6px);color:var(--blue-deep);
-  font-size:.84rem;font-weight:600;padding:8px 14px;border-radius:999px;
+  font-size:.82rem;font-weight:600;padding:9px 14px;border-radius:999px;
   box-shadow:0 3px 10px rgba(14,59,107,.14)}
-.slide-nav{position:absolute;top:50%;translate:0 -50%;width:40px;height:40px;border:0;
-  border-radius:50%;background:rgba(255,255,255,.94);color:var(--blue-deep);cursor:pointer;
-  display:grid;place-items:center;box-shadow:0 4px 12px rgba(14,59,107,.22)}
+.slide-nav{position:absolute;top:50%;translate:0 -50%;width:36px;height:36px;border:0;
+  border-radius:50%;background:rgba(255,255,255,.92);color:var(--blue-deep);cursor:pointer;
+  display:grid;place-items:center;box-shadow:0 4px 12px rgba(14,59,107,.22);z-index:2}
 .slide-nav.prev{left:12px}
 .slide-nav.next{right:12px}
-.slide-titik{display:flex;justify-content:center;gap:8px;margin-top:12px}
-.slide-titik button{width:8px;height:8px;padding:0;border:0;border-radius:999px;
-  background:#C3D4E6;cursor:pointer}
-.slide-titik button.is-on{width:22px;background:var(--blue-deep)}
+.slide-titik{position:absolute;right:14px;bottom:14px;display:flex;align-items:center;gap:6px;
+  z-index:2;padding:8px 10px;border-radius:999px;background:rgba(14,59,107,.38);backdrop-filter:blur(4px)}
+.slide-titik button{width:7px;height:7px;padding:0;border:0;border-radius:999px;
+  background:rgba(255,255,255,.75);box-shadow:0 1px 3px rgba(14,59,107,.35);cursor:pointer}
+.slide-titik button.is-on{width:18px;background:#fff}
 @media (hover:hover){.slide-nav:hover{background:#fff}}
 @media (prefers-reduced-motion:no-preference){
   .slide-nav,.slide-titik button{transition:background-color var(--gerak-1) ease,
@@ -668,9 +679,9 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
   .slide-nav:hover{transform:translateY(-50%) scale(1.06)}
 }
 @media (max-width:560px){
-  .slide-item{aspect-ratio:4/3}
-  .slide-nav{width:34px;height:34px}
-  .slide-item figcaption{font-size:.78rem;padding:6px 12px;left:10px;bottom:10px}
+  .slide-nav{width:32px;height:32px}
+  .slide-ket{font-size:.78rem;padding:7px 12px;left:10px;bottom:12px;max-width:calc(100% - 104px)}
+  .slide-titik{right:10px;bottom:12px;padding:7px 9px}
 }
 
 /* ======================================================================
