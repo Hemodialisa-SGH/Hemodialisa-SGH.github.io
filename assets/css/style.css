@@ -889,6 +889,24 @@ main a:not(.btn){text-decoration-color:rgba(14,59,107,.35);text-underline-offset
 }
 .faq-daftar{display:grid;gap:11px}
 
+/* FAQ satu lajur: judul di atas, daftar pertanyaannya tepat di bawahnya */
+.faq-tumpuk{grid-template-columns:minmax(0,1fr);gap:22px}
+.faq-tumpuk .faq-kiri{position:static;display:flex;flex-direction:column;align-items:flex-start}
+.faq-tumpuk .faq-judul{margin-bottom:10px}
+.faq-tumpuk .faq-lede{margin-bottom:16px;max-width:60ch}
+.faq-tumpuk .faq-daftar{gap:10px}
+@media (min-width:981px){
+  .faq-tumpuk .faq-daftar{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;align-items:start}
+}
+
+/* daftar reservasi sebagai kartu sejajar */
+.kartu-res{grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;align-items:start}
+.kartu-res li.res-item{grid-template-columns:minmax(0,1fr);align-content:start;gap:10px;padding:14px 16px}
+.kartu-res .res-aksi{border-top:1px solid var(--line);padding-top:10px;flex-wrap:wrap;width:100%}
+
+/* statistik ringkas di ruang staf */
+.stats-staf{display:grid;grid-template-columns:minmax(0,240px);margin:0 0 14px}
+
 .tanya{margin:0;border-radius:14px;overflow:hidden;background:#fff;
   border:1px solid var(--line);box-shadow:0 1px 2px rgba(14,59,107,.05)}
 .tanya summary{background:transparent;color:var(--blue-deep);font-weight:600;font-size:1rem;
