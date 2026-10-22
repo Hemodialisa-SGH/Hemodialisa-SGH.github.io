@@ -209,6 +209,12 @@ strong{font-weight:600}
 /* formulir di dalam bagian yang bisa disimpan memakai lebar penuh */
 .lipat .form-res{max-width:none}
 @media (min-width:981px){.lipat .form-res{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* dua isian Sheet berdampingan: masing-masing cukup dua kolom isian */
+.staf-dua-isian{align-items:start}
+.staf-dua-isian > .lipat{margin:0;height:100%}
+@media (min-width:981px){
+  .staf-dua-isian .form-res{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
 
 /* bagian ruang staf yang bisa disimpan agar halaman tidak panjang */
 .lipat{border:1px solid var(--line);border-radius:10px;background:var(--card);
