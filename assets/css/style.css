@@ -337,9 +337,8 @@ main a.btn-ghost{color:var(--blue-deep)}
 .fab-wa{position:relative;display:flex;align-items:center;gap:8px;background:#1FA855;color:#fff;text-decoration:none;
   font-weight:600;font-size:.9rem;padding:10px 16px 10px 12px;border-radius:999px;box-shadow:0 6px 16px rgba(31,168,85,.35)}
 .fab-wa svg{flex:none}
-/* tombol IGD 24 jam di atas tombol WhatsApp — membuka tanda bahaya di tab
-   Edukasi; sengaja tanpa nomor telepon */
-.fab-igd{display:flex;align-items:center;gap:8px;border:0;cursor:pointer;font:inherit;
+/* tombol IGD 24 jam di atas tombol WhatsApp — membuka WhatsApp IGD */
+.fab-igd{display:flex;align-items:center;gap:8px;border:0;cursor:pointer;font:inherit;text-decoration:none;
   background:#D8463C;color:#fff;font-weight:600;font-size:.9rem;
   padding:10px 16px 10px 12px;border-radius:999px;box-shadow:0 6px 16px rgba(216,70,60,.35)}
 .fab-igd svg{flex:none}
