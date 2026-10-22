@@ -523,7 +523,7 @@ function doGet(e) {
     }
     const staf = cekPin(p.pin).ok;
     const hariIni = hariIniIso();
-    const semua = bacaDb();
+    const semua = jadwalGabungan_();
     const jadwal = semua
       .filter(r => r.tanggal >= geser(hariIni, -1) && r.tanggal <= geser(hariIni, HARI_KE_DEPAN))
       .map(r => staf
@@ -583,7 +583,7 @@ function simpan(d, idLama) {
 
   // Daftar tunggu boleh diisi beberapa pasien sekaligus, jadi tidak dicek bentrok.
   if (bed !== TUNGGU) {
-    const bentrok = bacaDb().filter(r => r.id !== idLama && r.tanggal === tanggal && r.bed === bed
+    const bentrok = jadwalGabungan_().filter(r => r.id !== idLama && r.tanggal === tanggal && r.bed === bed
       && menit(mulai) < menit(r.selesai) && menit(r.mulai) < menit(selesai))[0];
     if (bentrok) return { ok: false, pesan: bed + ' sudah terisi ' + bentrok.mulai + '–' + bentrok.selesai + ' pada tanggal itu.' };
   }
@@ -611,10 +611,12 @@ function simpan(d, idLama) {
       hapusDariTabBulan_({ tanggal: teksTanggal(lama[0]), mulai: teksJam(lama[1]),
         bed: normBed(lama[3]), nama: String(lama[7] || '') });
     }
+    lupakanJadwal_();
     return { ok: true, id: idLama, catatan: tulisKeTabBulan_(keTab) };
   }
   const id = Utilities.getUuid().slice(0, 8);
   sh.appendRow(isi.concat([id, stempel, petugas || 'web']));
+  lupakanJadwal_();
   return { ok: true, id: id, catatan: tulisKeTabBulan_(keTab) };
 }
 
@@ -627,6 +629,7 @@ function hapus(id) {
   sh.deleteRow(baris);
   const catatan = hapusDariTabBulan_({ tanggal: teksTanggal(lama[0]), mulai: teksJam(lama[1]),
     bed: normBed(lama[3]), nama: String(lama[7] || '') });
+  lupakanJadwal_();
   return { ok: true, catatan: catatan };
 }
 
@@ -755,8 +758,19 @@ function bacaDaftarPasien_() {
     const kunci = nama.toLowerCase();
     if (!nama || sudah[kunci]) continue;
     sudah[kunci] = true;
+    const wajib = {
+      'No. RM': ambil(b, 'no. rm'),
+      'Tanggal lahir': isoDariSel_(peta.kolom['tanggal lahir'] !== undefined ? b[peta.kolom['tanggal lahir']] : ''),
+      'Alamat': ambil(b, 'alamat'),
+      'Diagnosis': ambil(b, 'diagnosis'),
+      'Akses vaskuler': ambil(b, 'akses vaskuler'),
+      'Tindakan': ambil(b, 'tindakan'),
+      'Penanggung jawab': ambil(b, 'penanggung jawab'),
+      'Status pasien': ambil(b, 'status pasien'),
+    };
+    const kurang = Object.keys(wajib).filter(k => !wajib[k]);
     keluar.push({
-      nama: nama,
+      nama: nama, kurang: kurang,
       lahir: isoDariSel_(peta.kolom['tanggal lahir'] !== undefined ? b[peta.kolom['tanggal lahir']] : ''),
       rm: ambil(b, 'no. rm'), alamat: ambil(b, 'alamat'), hp: ambil(b, 'no. handphone'),
       dpjp: ambil(b, 'dpjp'), diagnosis: ambil(b, 'diagnosis'), akses: ambil(b, 'akses vaskuler'),
@@ -829,6 +843,79 @@ function ambilTestimoni() {
     .map(v => ({ nama: String(v[1] || ''), kategori: String(v[2] || ''), nilai: v[3], pesan: String(v[4] || '') }))
     .reverse()
     .slice(0, 6);
+}
+
+/* ==================== menggabungkan dua sumber jadwal ====================
+   Reservasi bisa lahir dari dua tempat: lewat situs atau aplikasi (masuk ke
+   tab Database), dan lewat pengetikan langsung di tab bulanan. Supaya
+   keduanya terlihat di papan jadwal dan di aplikasi, isi tab bulanan ikut
+   dibaca setiap kali, lalu digabungkan tanpa menduakan baris yang sama.
+   Baris yang hanya ada di tab bulanan tidak punya ID, jadi tidak bisa diubah
+   atau dihapus dari situs — itu disengaja, supaya catatan asli tidak
+   tersentuh tanpa sepengetahuan petugas. */
+
+function jadwalGabungan_() {
+  const cache = CacheService.getScriptCache();
+  const tersimpan = cache.get('jadwal_gabungan');
+  if (tersimpan) {
+    try { return JSON.parse(tersimpan); } catch (err) { /* lanjut membaca */ }
+  }
+  const hasil = bacaDb();
+  const kunci = {};
+  hasil.forEach(r => { kunci[[r.tanggal, r.mulai, r.bed, r.nama.toLowerCase()].join('|')] = true; });
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const hariIni = hariIniIso();
+  const bulanDipakai = {};
+  [-1, 0, 1, 2].forEach(n => {
+    const d = new Date(hariIni + 'T00:00:00');
+    d.setMonth(d.getMonth() + n);
+    bulanDipakai[Utilities.formatDate(d, TZ, 'yyyy-MM')] = true;
+  });
+
+  ss.getSheets().forEach(sh => {
+    const info = bulanDariNamaTab_(sh.getName());
+    if (!info) return;
+    if (!bulanDipakai[info.tahun + '-' + dua(info.bulan + 1)]) return;
+    let peta;
+    try { peta = petaTabBulan_(sh); } catch (err) { return; }
+    const akhir = sh.getLastRow();
+    if (akhir < 3) return;
+    const nilai = sh.getRange(1, 1, akhir, peta.lebar).getValues();
+    let tanggal = '';
+    for (let r = 2; r < nilai.length; r++) {
+      const b = nilai[r];
+      const baru = isoBaris_(b[peta.tanggal], info);
+      if (baru) tanggal = baru;
+      if (!tanggal) continue;
+      const rentang = rentangBaris_(b, peta);
+      if (!rentang[0]) continue;
+      peta.bed.forEach(function (k) {
+        const isi = String(b[k.pasien] || '').trim();
+        if (!isi) return;
+        const daftar = k.bed === TUNGGU ? isi.split(/[;\n]+/) : [isi];
+        daftar.forEach(function (teks) {
+          const nama = teks.trim();
+          if (!nama) return;
+          const kode = [tanggal, rentang[0], k.bed, nama.toLowerCase()].join('|');
+          if (kunci[kode]) return;
+          kunci[kode] = true;
+          const ambil = c => (c >= 0 ? String(b[c] || '').trim() : '');
+          hasil.push({ tanggal: tanggal, mulai: rentang[0], selesai: rentang[1], bed: k.bed,
+            status: ambil(k.status), rs: ambil(k.rs), alamat: ambil(k.alamat),
+            nama: nama, ket: ambil(k.ket), id: '' });
+        });
+      });
+    }
+  });
+
+  try { cache.put('jadwal_gabungan', JSON.stringify(hasil), 60); } catch (err) { /* terlalu besar */ }
+  return hasil;
+}
+
+/** Cache jadwal dibuang setiap ada perubahan dari situs. */
+function lupakanJadwal_() {
+  try { CacheService.getScriptCache().remove('jadwal_gabungan'); } catch (err) {}
 }
 
 /* ==================== util ==================== */

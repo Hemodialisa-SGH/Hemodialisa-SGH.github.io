@@ -440,10 +440,29 @@ $('#tunggu-tanggal').addEventListener('change', gambarTunggu);
 
 /* ---------------- isian register dan tindakan ---------------- */
 
+/* Nama yang bisa dipilih: pasien di Sheet register, ditambah pasien yang baru
+   muncul di jadwal — termasuk yang reservasinya diketik langsung di Sheet —
+   supaya petugas tidak perlu mengetik ulang namanya. */
+function namaPasienTersedia() {
+  const daftar = DATA_PASIEN.map(p => ({ nama: p.nama, kurang: p.kurang || [], terdaftar: true }));
+  const sudah = {};
+  daftar.forEach(p => { sudah[samarkan(p.nama)] = true; });
+  DATA_JADWAL.forEach(r => {
+    const nama = r.nama || '';
+    if (!nama || sudah[samarkan(nama)]) return;
+    sudah[samarkan(nama)] = true;
+    daftar.push({ nama: nama, kurang: [], terdaftar: false });
+  });
+  return daftar.sort((a, b) => a.nama.localeCompare(b.nama));
+}
+
 function isiPilihanPasien(el, pilihan) {
   el.innerHTML = '';
   el.add(new Option('— pilih pasien —', ''));
-  DATA_PASIEN.forEach(p => el.add(new Option(p.nama, p.nama)));
+  namaPasienTersedia().forEach(p => {
+    const tanda = !p.terdaftar ? ' — belum di register' : (p.kurang.length ? ' — data belum lengkap' : '');
+    el.add(new Option(p.nama + tanda, p.nama));
+  });
   el.dataset.bawaan = '';
   if (pilihan) {
     if (![...el.options].some(o => o.value === pilihan)) el.add(new Option(pilihan, pilihan));
@@ -513,6 +532,14 @@ function isiBidang(wadahSel, data, timpa) {
   });
 }
 
+function catatanKelengkapan(nama) {
+  const p = DATA_PASIEN.find(x => samarkan(x.nama) === samarkan(nama));
+  if (!nama) return '';
+  if (!p) return `${nama} belum ada di Sheet register. Isi dan simpan registernya lebih dahulu.`;
+  if (p.kurang && p.kurang.length) return `Register ${nama} belum lengkap: ${p.kurang.join(', ')}.`;
+  return '';
+}
+
 function lengkapiDariRegister(nama, timpa) {
   const p = DATA_PASIEN.find(x => samarkan(x.nama) === samarkan(nama));
   if (!p) return false;
@@ -552,30 +579,50 @@ function pasangForm(opsi) {
   const tombol = $(opsi.tombol);
   gambarForm(wadah, KONFIG[opsi.bidang]);
   wadah.addEventListener('change', e => {
-    if (e.target.dataset.kunci === 'Nama Pasien') lengkapiDariRegister(e.target.value);
+    if (e.target.dataset.kunci !== 'Nama Pasien') return;
+    lengkapiDariRegister(e.target.value);
+    const catatan = catatanKelengkapan(e.target.value);
+    if (catatan) pesan(opsi.pesan, catatan, 'err', true); else pesan(opsi.pesan, '', '');
   });
   tombol.addEventListener('click', async () => {
     const data = bacaForm(wadah);
     if (!data['Nama Pasien']) return pesan(opsi.pesan, 'Isi nama pasien lebih dahulu.', 'err');
+    if (opsi.wajib) {
+      const kurang = opsi.wajib.filter(k => !data[k]);
+      $$('[data-kunci]', wadah).forEach(el => el.classList.toggle('kurang', kurang.includes(el.dataset.kunci)));
+      if (kurang.length && tombol.dataset.paksa !== '1') {
+        tombol.dataset.paksa = '1';
+        tombol.textContent = 'Simpan apa adanya';
+        return pesan(opsi.pesan, 'Belum terisi: ' + kurang.join(', ')
+          + '. Lengkapi, atau tekan sekali lagi untuk menyimpan apa adanya.', 'err', true);
+      }
+    }
+    tombol.dataset.paksa = '';
     const teksLama = tombol.textContent;
     tombol.disabled = true; tombol.textContent = 'Menyimpan…';
     try {
       const balas = await kirimApi({ aksi: opsi.aksi, data });
       pesan(opsi.pesan, balas.catatan || opsi.sukses, balas.catatan ? 'err' : 'ok', !!balas.catatan);
       gambarForm(wadah, KONFIG[opsi.bidang]);
+      tombol.textContent = opsi.teks || tombol.textContent;
       if (opsi.aksi === 'register') muatPasien();
     } catch (e) {
       pesan(opsi.pesan, e.message, 'err', true);
     } finally {
-      tombol.disabled = false; tombol.textContent = teksLama;
+      tombol.disabled = false;
+      tombol.textContent = opsi.teks || teksLama;
     }
   });
 }
 
 pasangForm({ wadah: '#form-register', tombol: '#simpan-register', pesan: '#register-pesan',
-  bidang: 'FORM_REGISTER', aksi: 'register', sukses: 'Pasien tersimpan di register dialisis.' });
+  bidang: 'FORM_REGISTER', aksi: 'register', teks: 'Simpan register',
+  sukses: 'Pasien tersimpan di register dialisis.',
+  wajib: ['No. RM', 'Tanggal Lahir', 'Alamat', 'Diagnosis', 'Akses Vaskuler', 'Tindakan',
+    'Penanggung Jawab', 'Status Pasien'] });
 pasangForm({ wadah: '#form-tindakan', tombol: '#simpan-tindakan', pesan: '#tindakan-pesan',
-  bidang: 'FORM_TINDAKAN', aksi: 'tindakan', sukses: 'Tindakan tersimpan di tab bulan berjalan.' });
+  bidang: 'FORM_TINDAKAN', aksi: 'tindakan', teks: 'Simpan tindakan',
+  sukses: 'Tindakan tersimpan di tab bulan berjalan.' });
 
 (function pasangSalinPasien() {
   const sel = $('#pilih-pasien-register');
