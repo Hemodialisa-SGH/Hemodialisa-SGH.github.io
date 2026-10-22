@@ -1185,6 +1185,62 @@ if (KONFIG.API_URL) setInterval(() => { if (!document.hidden) muatData(); }, 120
 setInterval(() => { if (!document.hidden) perbaruiProgres(); }, 30000);                 // bar progres tiap 30 detik
 addEventListener('visibilitychange', () => { if (!document.hidden) perbaruiProgres(); });
 
+/* ---------- slide show foto fasilitas ---------- */
+(function slideFasilitas() {
+  const jalur = $('#slide-jalur');
+  const titik = $('#slide-titik');
+  if (!jalur || !titik) return;
+  const isi = [...jalur.children];
+  if (isi.length < 2) return;
+  let aktif = 0, jeda = false;
+
+  isi.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.addEventListener('click', () => ke(i));
+    titik.appendChild(b);
+  });
+
+  function tandai() {
+    [...titik.children].forEach((b, i) => {
+      b.classList.toggle('is-on', i === aktif);
+      b.setAttribute('aria-label', `${T('Foto', 'Photo')} ${i + 1} ${T('dari', 'of')} ${isi.length}`);
+      b.setAttribute('aria-current', i === aktif ? 'true' : 'false');
+    });
+  }
+
+  function ke(i, halus) {
+    aktif = (i + isi.length) % isi.length;
+    jalur.scrollTo({ left: aktif * jalur.clientWidth, behavior: (halus !== false && GERAK) ? 'smooth' : 'auto' });
+    tandai();
+  }
+
+  $('#slide-mundur').addEventListener('click', () => ke(aktif - 1));
+  $('#slide-maju').addEventListener('click', () => ke(aktif + 1));
+  jalur.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); ke(aktif + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); ke(aktif - 1); }
+  });
+
+  let tunda;
+  jalur.addEventListener('scroll', () => {
+    clearTimeout(tunda);
+    tunda = setTimeout(() => {
+      const n = Math.round(jalur.scrollLeft / jalur.clientWidth);
+      if (n !== aktif) { aktif = n; tandai(); }
+    }, 120);
+  }, { passive: true });
+  addEventListener('resize', () => ke(aktif, false));
+
+  const induk = jalur.parentElement;
+  ['pointerenter', 'focusin'].forEach(n => induk.addEventListener(n, () => { jeda = true; }));
+  ['pointerleave', 'focusout'].forEach(n => induk.addEventListener(n, () => { jeda = false; }));
+  // berputar sendiri, berhenti saat disorot atau tab tidak aktif
+  if (GERAK) setInterval(() => { if (!jeda && !document.hidden) ke(aktif + 1); }, 6000);
+
+  tandai();
+})();
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
