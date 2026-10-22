@@ -169,6 +169,7 @@ async function muatSemua() {
     pesan('#menu-status', 'Jadwal gagal dimuat: ' + e.message, 'err', true);
   }
   muatPasien();
+  segarkanPilihanPasien();
   perbaruiAngka();
   perbaruiPilihanBed(false);
   gambarDaftarRes();
@@ -179,9 +180,7 @@ async function muatPasien() {
   try {
     const res = await fetch(alamatApi('aksi=pasien'));
     const d = await res.json();
-    if (!d.ok || !d.pasien) return;
-    DATA_PASIEN = d.pasien;
-    $$('select[data-pasien]').forEach(el => isiPilihanPasien(el, el.value));
+    if (d.ok && d.pasien) DATA_PASIEN = d.pasien;
     const dl = $('#rs-rujukan');
     if (dl && !dl.children.length) {
       (KONFIG.RS_RUJUKAN || []).forEach(n => {
@@ -191,6 +190,14 @@ async function muatPasien() {
       });
     }
   } catch (e) { /* daftar pasien hanya pelengkap */ }
+  segarkanPilihanPasien();
+}
+
+/* Menyusun ulang daftar nama dari dua sumber: Sheet register dan jadwal.
+   Tetap dijalankan walau register gagal dibaca, supaya nama pasien yang
+   sudah punya reservasi tetap bisa dipilih. */
+function segarkanPilihanPasien() {
+  $$('select[data-pasien]').forEach(el => isiPilihanPasien(el, el.value));
 }
 
 function perbaruiAngka() {

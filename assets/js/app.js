@@ -446,7 +446,7 @@ async function muatData() {
   pasangPilihTanggal();
   gambarDaftarRes();
   gambarPanelTunggu();
-  if (staffTerbuka()) perbaruiPilihanBed();
+  if (staffTerbuka()) { perbaruiPilihanBed(); segarkanPilihanPasien(); }
 }
 
 function tanggalTerpilih() {
@@ -1415,19 +1415,23 @@ async function muatPasien() {
       + 'aksi=pasien&pin=' + encodeURIComponent(pinStaf()) + '&t=' + Date.now();
     const res = await fetch(url);
     const d = await res.json();
-    if (!d.ok || !d.pasien) return;
-    DATA_PASIEN = d.pasien;
-    const dl = $('#daftar-pasien');
-    if (dl) {
-      dl.innerHTML = '';
-      DATA_PASIEN.forEach(p => {
-        const o = document.createElement('option');
-        o.value = p.nama;
-        dl.appendChild(o);
-      });
-    }
-    $$('select[data-pasien]').forEach(el => isiPilihanPasien(el, el.value));
+    if (d.ok && d.pasien) DATA_PASIEN = d.pasien;
   } catch (e) { /* daftar pasien hanya pelengkap, diabaikan bila gagal */ }
+  segarkanPilihanPasien();
+}
+
+/* Daftar nama disusun ulang dari dua sumber sekaligus. Dipanggil juga ketika
+   Sheet register belum bisa dibaca, supaya nama dari jadwal tetap muncul. */
+function segarkanPilihanPasien() {
+  $$('select[data-pasien]').forEach(el => isiPilihanPasien(el, el.value));
+  const dl = $('#daftar-pasien');
+  if (!dl) return;
+  dl.innerHTML = '';
+  namaPasienTersedia().forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.nama;
+    dl.appendChild(o);
+  });
 }
 
 function pasangFormSheet(opsi) {
