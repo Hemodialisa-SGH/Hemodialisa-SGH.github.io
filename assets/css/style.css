@@ -200,6 +200,10 @@ strong{font-weight:600}
 .staf-dua{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;
   align-items:start;margin-top:4px}
 .staf-kolom{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+/* kedua kolom atas juga bisa disimpan, seperti bagian lain di ruang staf */
+.staf-kolom.lipat{margin:0;padding:0 18px}
+.staf-kolom.lipat > summary{padding:14px 0}
+.staf-kolom.lipat > *:last-child{margin-bottom:16px}
 .staf-kolom > h3:first-child{margin-top:0}
 .staf-kolom .lede{margin-top:0}
 .staf-kolom .form-res{max-width:none;min-width:0;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
