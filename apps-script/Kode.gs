@@ -37,6 +37,12 @@ const KOLOM = ['Tanggal', 'Mulai', 'Selesai', 'Bed', 'Status', 'RS perujuk', 'Al
 const BED = ['Bed 1', 'Bed 2', 'Bed 3', 'Bed 4', 'Xtra'];
 const TUNGGU = 'Tunggu';            // pasien yang menunggu bed kosong
 const JUDUL_TUNGGU = 'WAITING LIST';
+
+/* Dua buku kerja lain yang diisi dari ruang staf. Skrip berjalan sebagai
+   pemiliknya, jadi cukup punya akses biasa ke kedua berkas ini. */
+const SHEET_REGISTER = '1HuCrYccC-tu5ynjK4lFmDf1V5M6mj2N7k46B2eb5BgI';
+const TAB_REGISTER = 'Register Pasien Dialisis';
+const SHEET_TINDAKAN = '1FD70HoClk_8I0h04BDkP1Z-7mq9xXNryjSgR_e9r8Rc';
 const SESI = { P: ['06:00', '11:00'], S: ['13:30', '19:00'] };   // shift di tab bulanan
 const NAMA_SESI = { P: 'Pagi', S: 'Siang' };
 const TZ = 'Asia/Jakarta';
@@ -528,6 +534,8 @@ function doPost(e) {
     const pin = cekPin(body.pin);
     if (!pin.ok) return json({ ok: false, pesan: pin.pesan });
     kunci.waitLock(15000);
+    if (body.aksi === 'register') return json(simpanRegister(body.data || {}));
+    if (body.aksi === 'tindakan') return json(simpanTindakan(body.data || {}));
     if (body.aksi === 'tambah') return json(simpan(body.data || {}, ''));
     if (body.aksi === 'ubah') return json(simpan(body.data || {}, String(body.id || '')));
     if (body.aksi === 'hapus') return json(hapus(String(body.id || '')));
@@ -606,6 +614,105 @@ function hapus(id) {
   const catatan = hapusDariTabBulan_({ tanggal: teksTanggal(lama[0]), mulai: teksJam(lama[1]),
     bed: normBed(lama[3]), nama: String(lama[7] || '') });
   return { ok: true, catatan: catatan };
+}
+
+/* ============ register pasien dan tindakan harian ============
+   Kolom dicari dari baris judul di Sheet tujuan, bukan dari posisi tetap,
+   sehingga menambah atau menggeser kolom di Sheet tidak merusak penyimpanan. */
+
+/** Baris judul: baris pertama di antara lima baris teratas yang memuat "nama pasien". */
+function petaKolomSheet_(sh) {
+  const lebar = Math.max(sh.getLastColumn(), 1);
+  const atas = sh.getRange(1, 1, Math.min(5, Math.max(sh.getLastRow(), 1)), lebar).getValues();
+  const rapi = v => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().toLowerCase();
+  for (let r = 0; r < atas.length; r++) {
+    const baris = atas[r].map(rapi);
+    if (baris.indexOf('nama pasien') < 0) continue;
+    const peta = {};
+    baris.forEach((v, i) => { if (v && peta[v] === undefined) peta[v] = i; });
+    return { baris: r + 1, lebar: lebar, kolom: peta };
+  }
+  throw new Error('Baris judul dengan kolom "Nama Pasien" tidak ditemukan di tab "' + sh.getName() + '".');
+}
+
+/** 2026-10-22 → 22/10/2026, mengikuti format tanggal yang sudah dipakai di Sheet. */
+function tanggalLokal_(iso) {
+  const p = String(iso || '').split('-');
+  return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : String(iso || '');
+}
+
+function tulisBarisSheet_(sh, data) {
+  const peta = petaKolomSheet_(sh);
+  const rapi = v => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().toLowerCase();
+  const baris = new Array(peta.lebar).fill('');
+  const tidakCocok = [];
+  let adaIsi = false;
+
+  Object.keys(data).forEach(kunci => {
+    const nilai = String(data[kunci] == null ? '' : data[kunci]).trim();
+    const kolom = peta.kolom[rapi(kunci)];
+    if (kolom === undefined) { if (nilai) tidakCocok.push(kunci); return; }
+    if (!nilai) return;
+    baris[kolom] = /^\d{4}-\d{2}-\d{2}$/.test(nilai) ? tanggalLokal_(nilai) : nilai;
+    adaIsi = true;
+  });
+  if (!adaIsi) return { ok: false, pesan: 'Tidak ada isian yang terisi.' };
+
+  // nomor urut dan stempel waktu diisi sendiri bila kolomnya ada
+  const kolomNo = peta.kolom['no'] !== undefined ? peta.kolom['no'] : peta.kolom['no.'];
+  const barisTerakhir = sh.getLastRow();
+  if (kolomNo !== undefined) {
+    let n = 0;
+    if (barisTerakhir > peta.baris) {
+      sh.getRange(peta.baris + 1, kolomNo + 1, barisTerakhir - peta.baris, 1).getValues()
+        .forEach(v => { const a = Number(String(v[0]).replace(/[^\d]/g, '')); if (a > n) n = a; });
+    }
+    baris[kolomNo] = n + 1;
+  }
+  const kolomStempel = peta.kolom['time stamp'];
+  if (kolomStempel !== undefined && !baris[kolomStempel]) baris[kolomStempel] = tanggalLokal_(hariIniIso());
+
+  sh.getRange(barisTerakhir + 1, 1, 1, peta.lebar).setValues([baris]);
+  return {
+    ok: true,
+    catatan: tidakCocok.length
+      ? 'Tersimpan, tetapi kolom berikut tidak ada di Sheet sehingga dilewati: ' + tidakCocok.join(', ') + '.'
+      : '',
+  };
+}
+
+function simpanRegister(d) {
+  const ss = SpreadsheetApp.openById(SHEET_REGISTER);
+  const sh = ss.getSheetByName(TAB_REGISTER) || ss.getSheets()[0];
+  return tulisBarisSheet_(sh, d);
+}
+
+function simpanTindakan(d) {
+  const ss = SpreadsheetApp.openById(SHEET_TINDAKAN);
+  const sh = cariTabBulan_(ss, d['Tanggal HD'] || hariIniIso()) || ss.getSheets()[0];
+  const hasil = tulisBarisSheet_(sh, d);
+  if (hasil.ok && !hasil.catatan && sh.getName()) hasil.tab = sh.getName();
+  return hasil;
+}
+
+/** Diagnostik: menampilkan nama kolom yang terbaca di kedua Sheet tujuan. */
+function ujiKolomTujuan() {
+  const keluar = [];
+  [['Register', SpreadsheetApp.openById(SHEET_REGISTER).getSheetByName(TAB_REGISTER)],
+   ['Tindakan', cariTabBulan_(SpreadsheetApp.openById(SHEET_TINDAKAN), hariIniIso())
+      || SpreadsheetApp.openById(SHEET_TINDAKAN).getSheets()[0]]].forEach(pasangan => {
+    const nama = pasangan[0], sh = pasangan[1];
+    if (!sh) { keluar.push(nama + ': tab tidak ditemukan'); return; }
+    try {
+      const peta = petaKolomSheet_(sh);
+      keluar.push(nama + ' → tab "' + sh.getName() + '", judul di baris ' + peta.baris
+        + ', kolom: ' + Object.keys(peta.kolom).join(' | '));
+    } catch (err) {
+      keluar.push(nama + ' → ' + (err.message || err));
+    }
+  });
+  Logger.log(keluar.join('\n\n'));
+  return keluar.join('\n\n');
 }
 
 /* ==================== kotak saran ==================== */

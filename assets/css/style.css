@@ -196,6 +196,20 @@ strong{font-weight:600}
 .ceklis-card h4{margin:0 0 8px;font-size:.95rem}
 .ceklis-card label{display:flex;gap:8px;align-items:flex-start;font-size:.9rem;margin-bottom:6px;cursor:pointer}
 .ceklis-card input{margin-top:4px;accent-color:var(--blue-deep)}
+/* ruang staf: formulir reservasi dan daftar tunggu berdampingan sama lebar */
+.staf-dua{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;
+  align-items:start;margin-top:4px}
+.staf-kolom{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.staf-kolom > h3:first-child{margin-top:0}
+.staf-kolom .lede{margin-top:0}
+.staf-kolom .form-res{max-width:none;min-width:0;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+#daftar-tunggu{margin-bottom:0}
+@media (max-width:980px){.staf-dua{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.staf-kolom .form-res{grid-template-columns:minmax(0,1fr)}}
+/* formulir di dalam bagian yang bisa disimpan memakai lebar penuh */
+.lipat .form-res{max-width:none}
+@media (min-width:981px){.lipat .form-res{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
 /* bagian ruang staf yang bisa disimpan agar halaman tidak panjang */
 .lipat{border:1px solid var(--line);border-radius:10px;background:var(--card);
   padding:0 16px;margin:14px 0}

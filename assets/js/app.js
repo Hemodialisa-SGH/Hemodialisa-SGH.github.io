@@ -30,6 +30,82 @@ const KONFIG = {
     { kode: '……/HD/RSSGH/2026', judul: 'Terminasi hemodialisis dan observasi pasca-dialisis', url: '' },
     { kode: '……/HD/RSSGH/2026', judul: 'Desinfeksi mesin dan pengelolaan limbah dialisis', url: '' },
   ],
+  // Nama rumah sakit yang pernah dipakai, untuk saran isian Unit asal dan tujuan
+  RS_RUJUKAN: ['RS Hermina Yogyakarta', 'RS Panti Rapih Yogyakarta', 'RS PKU Muhammadyah Gamping',
+    'RS Bethesda Yogyakarta', 'RSA UGM', 'RSUD Wates', 'RS Panembahan Senopati Bantul',
+    'RSUP DR. Sardjito', 'RS DKT Yogyakarta', 'RS Quuen Latifa Yogyakarta', 'RS Prambanan',
+    'RS Sakinah Idaman', 'RS PKU Muhammadiyah Bantul', 'RSUD Wirosaban', 'RS Rizki Amalia Temon',
+    'Klinik Nitipuran Yogyakarta', 'Klinik Damai'],
+  DPJP: ['dr. Dwi Wulansih, Sp.PD, Subs. GH (K)'],
+  DOKTER_JAGA: ['dr. Dyah Chandra Suwastiko Putri', 'dr. Andwikorina',
+    'dr. Muhammad Nugraha Putra', 'dr. Mahendra'],
+
+  /* Isian register pasien dialisis. Kunci k harus sama dengan nama kolom di
+     Google Sheet register; server mencocokkannya lewat baris judul. */
+  FORM_REGISTER: [
+    { k: 'Tanggal Registrasi', l: 'Tanggal registrasi', t: 'date', v: 'hariini' },
+    { k: 'Nama Pasien', l: 'Nama pasien', t: 'text', lebar: 2, ph: 'Tn Budi Santoso' },
+    { k: 'No. RM', l: 'No. RM', t: 'text', ph: '002451' },
+    { k: 'No. KTP', l: 'No. KTP', t: 'text', ph: '3404xxxxxxxxxxxx' },
+    { k: 'Tanggal Lahir', l: 'Tanggal lahir', t: 'date' },
+    { k: 'No. Handphone', l: 'No. handphone', t: 'tel', ph: '08xxxxxxxxxx' },
+    { k: 'Alamat', l: 'Alamat', t: 'text', lebar: 2, ph: 'Argomulyo, Sedayu, Bantul' },
+    { k: 'DPJP', l: 'DPJP', t: 'select', o: 'DPJP', lebar: 2 },
+    { k: 'Diagnosis', l: 'Diagnosis', t: 'select', o: ['Endstage Kidney Disease', 'Accute Kidney Injured'] },
+    { k: 'Penyebab', l: 'Penyebab', t: 'select', o: ['Hypertension', 'Nefropati Diabetika',
+      'Nefropati Diabetika, Hypertension', 'Glomerulonephritis', 'Lain-lain'] },
+    { k: 'Penyerta', l: 'Penyerta', t: 'select', o: ['Hypertension', 'Diabetes Mellitus',
+      'Cardiovascular Disease', 'Ischaemic Heart Disease', 'Cancer', 'Tidak ada'] },
+    { k: 'Akses Vaskuler', l: 'Akses vaskuler', t: 'select', o: ['CDL', 'AV-Shunt', 'Femoral'] },
+    { k: 'Lokasi Akses', l: 'Lokasi akses', t: 'select', o: ['SubClavia', 'Jugularis', 'Femoral',
+      'Ekst Atas (D)', 'Ekst Atas (S)'] },
+    { k: 'Laboratorium', l: 'Laboratorium', t: 'select', o: ['Negatif', 'Positif', 'Belum ada'] },
+    { k: 'HB', l: 'HB', t: 'text', ph: 'misal: 8,8' },
+    { k: 'Tindakan', l: 'Tindakan', t: 'select', o: ['HD Rutin', 'HD Travelling', 'HD Ekstra'] },
+    { k: 'Unit Asal', l: 'Unit asal', t: 'text', d: 'rs-rujukan' },
+    { k: 'Unit Tujuan', l: 'Unit tujuan', t: 'text', d: 'rs-rujukan' },
+    { k: 'Penanggung Jawab', l: 'Penanggung jawab', t: 'select', o: ['Pribadi / UMUM', 'Promo Gratis', 'BPJS'] },
+    { k: 'Status Pasien', l: 'Status pasien', t: 'select', o: ['Rutin', 'Travelling', 'Meninggal'] },
+    { k: 'Antrean BPJS', l: 'Antrean BPJS', t: 'select', o: ['Daftar HD BPJS', 'Belum Dapat Tempat',
+      'Tidak Daftar', 'Unit Lain'] },
+  ],
+
+  /* Isian tindakan harian HD, ditulis ke tab bulan berjalan di Sheet tindakan. */
+  FORM_TINDAKAN: [
+    { k: 'Tanggal HD', l: 'Tanggal HD', t: 'date', v: 'hariini' },
+    { k: 'Jam selesai', l: 'Jam selesai', t: 'time' },
+    { k: 'Nama Pasien', l: 'Nama pasien', t: 'text', lebar: 2, ph: 'Tn Budi Santoso' },
+    { k: 'Tanggal Lahir', l: 'Tanggal lahir', t: 'date' },
+    { k: 'Jenis Kelamin', l: 'Jenis kelamin', t: 'select', o: ['Laki-laki', 'Perempuan'] },
+    { k: 'Jenis Tindakan', l: 'Jenis tindakan', t: 'select', o: ['Rutin', 'Traveling', 'Ekstra',
+      'HD 1 Minggu/sekali'] },
+    { k: 'Diagnosa', l: 'Diagnosa', t: 'text', v: 'CKD V' },
+    { k: 'DPJP', l: 'DPJP', t: 'select', o: 'DPJP', lebar: 2 },
+    { k: 'Dokter jaga HD', l: 'Dokter jaga HD', t: 'select', o: 'DOKTER_JAGA', lebar: 2 },
+    { k: 'Penjamin', l: 'Penjamin', t: 'select', o: ['Pribadi / Umum', 'Promo Gratis', 'BPJS'] },
+    { k: 'Gol. Darah', l: 'Gol. darah', t: 'select', o: ['', 'A', 'B', 'AB', 'O'] },
+    { k: 'HB', l: 'HB', t: 'text', ph: 'misal: 7,8' },
+    { k: 'Tensi', l: 'Tensi', t: 'text', ph: '120/80' },
+    { k: 'HR', l: 'HR', t: 'text', ph: 'x/menit' },
+    { k: 'RR', l: 'RR', t: 'text', ph: 'x/menit' },
+    { k: 'SUHU', l: 'Suhu', t: 'text', ph: "misal: 36,8" },
+    { k: 'SPO2', l: 'SpO2', t: 'text', ph: '%' },
+    { k: 'BB Pre', l: 'BB pre', t: 'text', ph: 'kg' },
+    { k: 'BB Post', l: 'BB post', t: 'text', ph: 'kg' },
+    { k: 'BB Kering', l: 'BB kering', t: 'text', ph: 'kg atau Obs' },
+    { k: 'Time Dialisis *)Jam', l: 'Lama dialisis (jam)', t: 'text', ph: 'misal: 4,5' },
+    { k: 'UF Goal *)ml', l: 'UF goal (ml)', t: 'text' },
+    { k: 'UF Rate *)ml/jam', l: 'UF rate (ml/jam)', t: 'text' },
+    { k: 'Quick Blood (QB)', l: 'QB', t: 'text', ph: 'ml/menit' },
+    { k: 'Quick Dialisat (QD)', l: 'QD', t: 'text', ph: 'ml/menit' },
+    { k: 'Akses', l: 'Akses', t: 'select', o: ['CDL (Catheter Double Lumen)', 'AV-Shunt', 'Femoral'] },
+    { k: 'Problem', l: 'Problem akses', t: 'select', o: ['Tidak', 'Ada'] },
+    { k: 'Kt/V', l: 'Kt/V', t: 'text' },
+    { k: 'Status pasien', l: 'Status pasien', t: 'select', o: ['Pulang', 'Rawat Inap', 'APS'] },
+    { k: 'keluhan', l: 'Keluhan saat HD', t: 'text', lebar: 2 },
+    { k: 'keterangan', l: 'Keterangan', t: 'text', lebar: 2 },
+  ],
+
   CEKLIS: [
     { judul: 'Troli emergensi', butir: [
       'Segel troli utuh dan nomor segel sesuai catatan',
@@ -492,6 +568,7 @@ async function muatData() {
   gambarRekap();
   pasangPilihTanggal();
   gambarDaftarRes();
+  gambarPanelTunggu();
   if (staffTerbuka()) perbaruiPilihanBed();
 }
 
@@ -765,7 +842,7 @@ function isiForm(r) {
 $('#batal-res').addEventListener('click', () => { kosongkanForm(); perbaruiPilihanBed(); pesanRes('Perubahan dibatalkan.', ''); });
 ['#res-tanggal', '#res-shift'].forEach(s => {
   const el = $(s);
-  if (el) el.addEventListener('change', () => perbaruiPilihanBed(false));
+  if (el) el.addEventListener('change', () => { perbaruiPilihanBed(false); gambarPanelTunggu(); });
 });
 
 /* Dua shift ini sama dengan baris jam di tab bulanan Google Sheet, sehingga
@@ -810,7 +887,8 @@ function bedKosongUntuk(tanggal, mulai, kecualiId) {
 }
 
 /** Memindahkan satu pasien dari daftar tunggu ke bed yang masih kosong. */
-function bukaPindah(r, aksi) {
+function bukaPindah(r, aksi, ulang) {
+  ulang = ulang || gambarDaftarRes;
   const kosong = bedKosongUntuk(r.tanggal, r.mulai, r.id);
   if (!kosong.length) {
     pesanRes(T('Belum ada bed kosong pada jam itu, termasuk bed Xtra.',
@@ -827,7 +905,7 @@ function bukaPindah(r, aksi) {
   const batal = document.createElement('button');
   batal.className = 'hapus';
   batal.textContent = T('Batal', 'Cancel');
-  batal.addEventListener('click', gambarDaftarRes);
+  batal.addEventListener('click', () => ulang());
   ok.addEventListener('click', async () => {
     ok.disabled = batal.disabled = true;
     ok.textContent = T('Memindahkan…', 'Moving…');
@@ -841,10 +919,45 @@ function bukaPindah(r, aksi) {
       await muatData();
     } catch (e) {
       pesanRes(e.message, 'err');
-      gambarDaftarRes();
+      ulang();
     }
   });
   aksi.append(sel, ok, batal);
+}
+
+/** Kolom daftar tunggu di samping formulir reservasi. */
+function gambarPanelTunggu() {
+  const ul = $('#daftar-tunggu');
+  if (!ul) return;
+  const tanggal = ($('#res-tanggal') && $('#res-tanggal').value) || isoHariIni;
+  ul.innerHTML = '';
+  if (!KONFIG.API_URL) { ul.innerHTML = '<li class="note">' + t('Belum tersambung ke Apps Script.') + '</li>'; return; }
+  const rows = DATA_JADWAL.filter(r => r.bed === KUNCI_TUNGGU && r.tanggal === tanggal)
+    .sort((a, b) => (a.mulai ?? 0) - (b.mulai ?? 0));
+  if (!rows.length) {
+    ul.innerHTML = '<li class="note">' + T('Belum ada pasien menunggu pada tanggal ini.',
+      'Nobody is waiting on this date.') + '</li>';
+    return;
+  }
+  rows.forEach((r, i) => {
+    const li = document.createElement('li');
+    li.className = 'res-tunggu';
+    const shift = (r.mulai ?? 0) >= 12 * 60 ? T('Siang', 'Afternoon') : T('Pagi', 'Morning');
+    li.innerHTML = `<span><b>${i + 1}. ${esc(r.inisial || r.nama)}</b>`
+      + `<br><span class="kode">${shift} ${formatJam(r.mulai)}–${formatJam(r.selesai)}`
+      + `${r.status ? ', ' + esc(r.status) : ''}${r.rs ? ', ' + esc(r.rs) : ''}</span></span>`;
+    if (r.id) {
+      const aksi = document.createElement('span');
+      aksi.className = 'res-aksi';
+      const p = document.createElement('button');
+      p.className = 'pindah';
+      p.textContent = T('Pindahkan', 'Move');
+      p.addEventListener('click', () => bukaPindah(r, aksi, gambarPanelTunggu));
+      aksi.appendChild(p);
+      li.appendChild(aksi);
+    }
+    ul.appendChild(li);
+  });
 }
 
 function gambarDaftarRes() {
@@ -1201,6 +1314,91 @@ muatTestimoni();
 if (KONFIG.API_URL) setInterval(() => { if (!document.hidden) muatData(); }, 120000);   // segarkan tiap 2 menit
 setInterval(() => { if (!document.hidden) perbaruiProgres(); }, 30000);                 // bar progres tiap 30 detik
 addEventListener('visibilitychange', () => { if (!document.hidden) perbaruiProgres(); });
+
+/* ================= isian register pasien dan tindakan harian =================
+   Keduanya ditulis ke Google Sheet masing-masing lewat Apps Script. Nama kolom
+   diambil dari kunci k pada KONFIG, dan server mencocokkannya dengan baris
+   judul di Sheet, sehingga urutan kolom boleh berubah tanpa mengubah situs. */
+
+function gambarFormUmum(wadah, bidang) {
+  if (!wadah) return;
+  wadah.innerHTML = '';
+  bidang.forEach(f => {
+    const lab = document.createElement('label');
+    if (f.lebar === 2) lab.className = 'span2';
+    lab.appendChild(document.createTextNode(f.l));
+    let el;
+    if (f.t === 'select') {
+      el = document.createElement('select');
+      const pilihan = typeof f.o === 'string' ? (KONFIG[f.o] || []) : (f.o || []);
+      pilihan.forEach(o => el.add(new Option(o, o)));
+    } else {
+      el = document.createElement('input');
+      el.type = f.t || 'text';
+      el.autocomplete = 'off';
+      if (f.ph) el.placeholder = f.ph;
+      if (f.d) el.setAttribute('list', f.d);
+      if (f.v === 'hariini') el.value = isoHariIni;
+      else if (f.v) el.value = f.v;
+    }
+    el.dataset.kunci = f.k;
+    lab.appendChild(el);
+    wadah.appendChild(lab);
+  });
+}
+
+const bacaFormUmum = wadah => {
+  const d = {};
+  $$('[data-kunci]', wadah).forEach(el => { d[el.dataset.kunci] = String(el.value || '').trim(); });
+  return d;
+};
+
+function pesanUmum(sel, teks, jenis, tetap) {
+  const el = $(sel);
+  if (!el) return;
+  el.textContent = teks;
+  el.className = jenis || '';
+  clearTimeout(pesanUmum[sel]);
+  if (!tetap) pesanUmum[sel] = setTimeout(() => { el.textContent = ''; }, 8000);
+}
+
+function pasangFormSheet(opsi) {
+  const wadah = $(opsi.wadah);
+  const tombol = $(opsi.tombol);
+  if (!wadah || !tombol) return;
+  gambarFormUmum(wadah, KONFIG[opsi.bidang]);
+  tombol.addEventListener('click', async () => {
+    const data = bacaFormUmum(wadah);
+    if (!data['Nama Pasien']) return pesanUmum(opsi.pesan, 'Isi nama pasien lebih dahulu.', 'err');
+    if (!KONFIG.API_URL) return pesanUmum(opsi.pesan, 'Belum tersambung ke Apps Script.', 'err');
+    const teksLama = tombol.textContent;
+    tombol.disabled = true;
+    tombol.textContent = 'Menyimpan…';
+    try {
+      const balas = await kirimApi({ aksi: opsi.aksi, data });
+      pesanUmum(opsi.pesan, balas.catatan || opsi.sukses, balas.catatan ? 'err' : 'ok', !!balas.catatan);
+      gambarFormUmum(wadah, KONFIG[opsi.bidang]);
+    } catch (e) {
+      pesanUmum(opsi.pesan, e.message, 'err', true);
+    } finally {
+      tombol.disabled = false;
+      tombol.textContent = teksLama;
+    }
+  });
+}
+
+(function siapkanFormSheet() {
+  const dl = $('#rs-rujukan');
+  if (dl) (KONFIG.RS_RUJUKAN || []).forEach(n => {
+    const o = document.createElement('option');
+    o.value = n;
+    dl.appendChild(o);
+  });
+  pasangFormSheet({ wadah: '#form-register', tombol: '#simpan-register', pesan: '#register-pesan',
+    bidang: 'FORM_REGISTER', aksi: 'register', sukses: 'Pasien tersimpan di register dialisis.' });
+  pasangFormSheet({ wadah: '#form-tindakan', tombol: '#simpan-tindakan', pesan: '#tindakan-pesan',
+    bidang: 'FORM_TINDAKAN', aksi: 'tindakan', sukses: 'Tindakan tersimpan di tab bulan berjalan.' });
+})();
 
 /* ---------- slide show foto fasilitas ---------- */
 (function slideFasilitas() {
