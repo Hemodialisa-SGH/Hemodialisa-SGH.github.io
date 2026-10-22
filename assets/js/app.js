@@ -1299,27 +1299,44 @@ const samarkan = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
    muncul di jadwal — termasuk yang reservasinya diketik langsung di Sheet. */
 function namaPasienTersedia(tanggal) {
   const daftarRegister = DATA_PASIEN.map(p => ({ nama: p.nama, kurang: p.kurang || [], terdaftar: true }));
-  const diRegister = {};
-  daftarRegister.forEach(p => { diRegister[samarkan(p.nama)] = p; });
+  const adaRegister = daftarRegister.length > 0;
 
-  /* Hanya pasien yang punya reservasi pada tanggal itu yang ditawarkan,
-     supaya daftarnya pendek dan sesuai pekerjaan hari itu. Bila tanggal itu
-     belum ada reservasinya sama sekali, seluruh pasien terdaftar ditampilkan
-     agar formulir tetap bisa dipakai. */
+  /* Hanya pasien yang punya reservasi pada tanggal itu yang ditawarkan, sesuai
+     jadwal. Nama di jadwal yang tertulis lebih pendek atau lebih panjang
+     daripada di register — misalnya tanpa nama depan — tetap dikenali sebagai
+     pasien yang sama selama hanya satu yang cocok, lalu ditampilkan memakai
+     nama resminya di register supaya tidak muncul dua kali. */
   if (tanggal) {
     const hasil = [];
     const sudah = {};
     DATA_JADWAL.filter(r => r.tanggal === tanggal).forEach(r => {
-      const nama = r.nama || '';
+      if (!r.nama) return;
+      const p = cocokkanPasien(r.nama);
+      const nama = p ? p.nama : r.nama;
       const kunci = samarkan(nama);
-      if (!nama || sudah[kunci]) return;
+      if (sudah[kunci]) return;
       sudah[kunci] = true;
-      const p = diRegister[kunci];
-      hasil.push({ nama: nama, kurang: p ? p.kurang : [], terdaftar: !!p });
+      hasil.push({ nama: nama, kurang: p ? (p.kurang || []) : [], terdaftar: !!p || !adaRegister });
     });
-    if (hasil.length) return hasil.sort((a, b) => a.nama.localeCompare(b.nama));
+    return hasil.sort((a, b) => a.nama.localeCompare(b.nama));
   }
   return daftarRegister.sort((a, b) => a.nama.localeCompare(b.nama));
+}
+
+/* Mencari pasien di register: persis dahulu, lalu nama yang memuat satu sama
+   lain. Bila lebih dari satu yang cocok, dianggap tidak ketemu supaya tidak
+   salah orang. */
+function cocokkanPasien(nama) {
+  const cari = samarkan(nama);
+  if (!cari) return null;
+  const persis = DATA_PASIEN.find(p => samarkan(p.nama) === cari);
+  if (persis) return persis;
+  if (cari.length < 8) return null;
+  const mirip = DATA_PASIEN.filter(p => {
+    const n = samarkan(p.nama);
+    return n.length >= 8 && (n.indexOf(cari) >= 0 || cari.indexOf(n) >= 0);
+  });
+  return mirip.length === 1 ? mirip[0] : null;
 }
 
 /* Tanggal yang menentukan isi daftar: tanggal HD untuk isian tindakan,
@@ -1334,9 +1351,11 @@ function tanggalUntuk(el) {
 }
 
 function isiPilihanPasien(el, pilihan) {
+  const daftar = namaPasienTersedia(tanggalUntuk(el));
   el.innerHTML = '';
-  el.add(new Option(T('— pilih pasien —', '— choose a patient —'), ''));
-  namaPasienTersedia(tanggalUntuk(el)).forEach(p => {
+  el.add(new Option(daftar.length ? T('— pilih pasien —', '— choose a patient —')
+    : T('— tidak ada reservasi pada tanggal ini —', '— no bookings on this date —'), ''));
+  daftar.forEach(p => {
     const tanda = !p.terdaftar ? T(' — belum di register', ' — not registered yet')
       : (p.kurang.length ? T(' — data belum lengkap', ' — incomplete data') : '');
     el.add(new Option(p.nama + tanda, p.nama));
@@ -1384,7 +1403,7 @@ function bukaBagian(sel) {
 
 /** Melengkapi kedua formulir dari data pasien yang sudah tercatat di register. */
 function lengkapiDariRegister(nama, timpa) {
-  const p = DATA_PASIEN.find(x => samarkan(x.nama) === samarkan(nama));
+  const p = cocokkanPasien(nama);
   if (!p) return false;
   isiBidang('#form-register', {
     'Tanggal Lahir': p.lahir, 'No. RM': p.rm, 'Alamat': p.alamat, 'No. Handphone': p.hp,
