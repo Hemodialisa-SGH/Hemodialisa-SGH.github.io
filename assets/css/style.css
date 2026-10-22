@@ -472,22 +472,6 @@ body{padding-bottom:84px}
   font-size:.82rem;padding:4px 10px;border-radius:6px;cursor:pointer}
 .docs .ubah:hover{background:#F2F7FC}
 
-/* ---------- mode aplikasi petugas: ./?petugas=1 ---------- */
-.app-label{display:none;font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--blue-deep);background:#EAF2FA;border-radius:999px;padding:6px 12px}
-html.mode-app .app-label{display:inline-flex;margin-left:auto}
-html.mode-app .topbar,
-html.mode-app .melayang,
-html.mode-app .kaki,
-html.mode-app .btn-daftar,
-html.mode-app .tab:not([data-panel="staf"]),
-html.mode-app .panel:not(#panel-staf){display:none}
-html.mode-app .tabs{display:none}
-html.mode-app body{padding-bottom:28px}
-html.mode-app .latar-foto::before{opacity:.1}
-html.mode-app #panel-staf{animation:none}
-html.mode-app .staf-head h2{font-size:1.25rem}
-
 /* ---------- baris reservasi: satu kolom isi, satu kolom tombol ---------- */
 .docs li.res-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;
   align-items:start;padding:12px 14px}

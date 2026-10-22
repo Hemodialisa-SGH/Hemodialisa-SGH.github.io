@@ -1,0 +1,78 @@
+/* Aplikasi petugas: tampilan layar penuh di ponsel, memakai warna dan
+   komponen yang sama dengan situs (style.css dimuat lebih dahulu). */
+
+body.app{padding-bottom:28px}
+
+.app-bar{position:sticky;top:0;z-index:15;display:flex;align-items:center;gap:12px;
+  padding:10px max(14px,env(safe-area-inset-left)) 10px max(14px,env(safe-area-inset-right));
+  padding-top:calc(10px + env(safe-area-inset-top));
+  background:#fff;border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(14,59,107,.06)}
+.app-logo{width:34px;height:auto;flex:none}
+.app-judul{min-width:0;flex:1}
+.app-rs{margin:0;font-size:.68rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ink-soft)}
+.app-bar h1{margin:0;font-family:var(--judul);font-size:1.08rem;font-weight:800;
+  color:var(--blue-deep);letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app-bar [hidden]{display:none}
+.app-kembali{flex:none;width:36px;height:36px;display:grid;place-items:center;cursor:pointer;
+  border:1px solid var(--line);background:#fff;color:var(--blue-deep);border-radius:10px}
+.app-kunci{flex:none;border:1px solid #B7D2EC;background:#fff;color:var(--blue-deep);
+  font:inherit;font-size:.82rem;font-weight:600;padding:7px 13px;border-radius:999px;cursor:pointer}
+
+.app-isi{max-width:900px;margin:0 auto;
+  padding:18px max(14px,env(safe-area-inset-left)) 24px max(14px,env(safe-area-inset-right))}
+.layar[hidden]{display:none}
+.app-sub{margin:22px 0 10px;font-size:1rem;color:var(--blue-deep)}
+.app-aksi{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.app-aksi .ok{color:#1B6B3A}
+.app-aksi .err{color:var(--red)}
+.app-tanggal{display:flex;flex-direction:column;gap:4px;font-size:.84rem;color:var(--ink-soft);
+  max-width:240px;margin:0 0 14px}
+.app-tanggal input{font:inherit;font-size:.95rem;color:var(--ink);padding:9px 11px;
+  border:1px solid var(--line);border-radius:9px;background:#fff}
+
+/* gerbang PIN */
+.gerbang{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:22px 20px;max-width:420px;margin:6vh auto 0;box-shadow:0 10px 26px rgba(14,59,107,.08)}
+.gerbang h2{margin:0 0 6px;font-size:1.2rem;color:var(--blue-deep)}
+.gerbang .lede{margin:0 0 16px;font-size:.9rem}
+.gerbang-form{display:grid;gap:8px}
+.gerbang-form label{font-size:.84rem;color:var(--ink-soft)}
+.gerbang-form input{font:inherit;font-size:1.3rem;letter-spacing:.3em;text-align:center;
+  padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.gerbang .note{margin-top:14px}
+
+/* menu empat pilihan */
+.app-sapa{margin:0 0 12px;font-size:.78rem;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-soft)}
+.menu-petak{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.petak{display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;position:relative;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 14px;
+  font:inherit;color:var(--ink);box-shadow:0 2px 6px rgba(14,59,107,.05)}
+.petak-ikon{flex:none;width:46px;height:46px;border-radius:12px;display:grid;place-items:center}
+.petak-ikon.lc-biru{background:#E8F1FA;color:var(--blue-deep)}
+.petak-ikon.lc-kuning{background:#FDF3E2;color:#8A5A12}
+.petak-ikon.lc-hijau{background:#E7F5EC;color:#1B6B3A}
+.petak-ikon.lc-merah{background:#FBECEA;color:#A33322}
+.petak-teks{display:grid;gap:2px;min-width:0}
+.petak-teks b{font-size:1rem;color:var(--blue-deep)}
+.petak-teks small{font-size:.78rem;color:var(--ink-soft);line-height:1.4}
+.petak-angka{position:absolute;top:10px;right:12px;font-size:.7rem;font-weight:700;
+  color:var(--ink-soft)}
+.petak-angka.perlu{color:#8A5A12}
+@media (hover:hover){.petak:hover{border-color:#B7D2EC;background:#F7FBFF}}
+@media (prefers-reduced-motion:no-preference){
+  .petak{transition:border-color var(--gerak-1) ease,background-color var(--gerak-1) ease,
+    transform var(--gerak-2) var(--halus),box-shadow var(--gerak-2) ease}
+  .petak:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(14,59,107,.12)}
+}
+@media (max-width:560px){
+  .menu-petak{grid-template-columns:minmax(0,1fr)}
+  .app-bar h1{font-size:1rem}
+}
+
+/* isian memakai lebar penuh di aplikasi */
+.app .form-res{max-width:none}
+@media (min-width:700px){.app .form-res{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.app .kartu-res{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.app .status-bed{margin-bottom:12px}

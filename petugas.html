@@ -2,25 +2,139 @@
 <html lang="id">
 <head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
 <meta content="#17508A" name="theme-color"/>
 <meta content="noindex, nofollow" name="robots"/>
-<title>Aplikasi Petugas — Unit Hemodialisis RS Sedayu General Hospital</title>
+<title>Petugas HD — RS Sedayu General Hospital</title>
+<meta content="Reservasi, daftar tunggu, register pasien dialisis, dan tindakan harian Unit Hemodialisis RS Sedayu General Hospital." name="description"/>
 <link href="petugas.webmanifest?v=63" rel="manifest"/>
 <link href="assets/img/favicon-32.png?v=63" rel="icon" sizes="32x32" type="image/png"/>
+<link href="assets/img/icon-192.png?v=63" rel="icon" sizes="192x192" type="image/png"/>
 <link href="assets/img/apple-touch-icon.png?v=63" rel="apple-touch-icon"/>
-<meta content="0; url=./?petugas=1" http-equiv="refresh"/>
-<style>
-  body{margin:0;min-height:100svh;display:grid;place-items:center;background:#EFF3F7;
-    color:#0E3B6B;font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center;padding:24px}
-  a{color:#17508A}
-</style>
+<meta content="yes" name="mobile-web-app-capable"/>
+<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="Petugas HD" name="apple-mobile-web-app-title"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="assets/css/style.css?v=63" rel="stylesheet"/>
+<link href="assets/css/petugas.css?v=63" rel="stylesheet"/>
 </head>
-<body>
-<main>
-<p>Membuka aplikasi petugas…</p>
-<p><a href="./?petugas=1">Buka sekarang</a></p>
+<body class="app">
+<div aria-hidden="true" class="latar-foto"></div>
+
+<header class="app-bar">
+<button class="app-kembali" hidden="" id="kembali" type="button" aria-label="Kembali ke menu">
+<svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="20"><path d="M15 5l-7 7 7 7"></path></svg>
+</button>
+<img alt="" class="app-logo" src="assets/img/logo.png"/>
+<div class="app-judul">
+<p class="app-rs">RS Sedayu General Hospital</p>
+<h1 id="judul-layar">Petugas Unit Hemodialisis</h1>
+</div>
+<button class="app-kunci" hidden="" id="kunci" type="button">Kunci</button>
+</header>
+
+<main class="app-isi">
+
+<!-- ============ gerbang PIN ============ -->
+<section class="layar is-on" id="layar-gerbang">
+<div class="gerbang">
+<h2>Masuk aplikasi petugas</h2>
+<p class="lede">Masukkan PIN unit. PIN-nya sama dengan yang dipakai Ruang staf di situs, dan diperiksa di server.</p>
+<div class="gerbang-form">
+<label for="pin">PIN unit</label>
+<input autocomplete="off" id="pin" inputmode="numeric" placeholder="••••••" type="password"/>
+<button class="btn" id="buka" type="button">Buka</button>
+</div>
+<p class="err" id="pin-pesan" role="alert"></p>
+<p class="note">Data pasien disimpan di Google Sheet unit, bukan di aplikasi ini. Kunci kembali bila perangkat dipakai bergantian.</p>
+</div>
+</section>
+
+<!-- ============ menu utama ============ -->
+<section class="layar" hidden="" id="layar-menu">
+<p class="app-sapa" id="app-sapa">Pilih pekerjaan</p>
+<div class="menu-petak">
+<button class="petak" data-layar="reservasi" type="button">
+<span class="petak-ikon lc-biru"><svg aria-hidden="true" fill="none" height="26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" viewbox="0 0 24 24" width="26"><rect height="16" rx="2.5" width="18" x="3" y="4.5"></rect><path d="M3 9.5h18M8 2.5v4M16 2.5v4M8.5 14h7"></path></svg></span>
+<span class="petak-teks"><b>Reservasi</b><small>Jadwalkan pasien ke bed</small></span>
+<span class="petak-angka" id="angka-reservasi"></span>
+</button>
+<button class="petak" data-layar="tunggu" type="button">
+<span class="petak-ikon lc-kuning"><svg aria-hidden="true" fill="none" height="26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" viewbox="0 0 24 24" width="26"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg></span>
+<span class="petak-teks"><b>Waiting list</b><small>Pasien menunggu bed kosong</small></span>
+<span class="petak-angka" id="angka-tunggu"></span>
+</button>
+<button class="petak" data-layar="register" type="button">
+<span class="petak-ikon lc-hijau"><svg aria-hidden="true" fill="none" height="26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" viewbox="0 0 24 24" width="26"><path d="M5 3.5h11.5a2.5 2.5 0 0 1 2.5 2.5v14H7.5A2.5 2.5 0 0 1 5 17.5z"></path><path d="M8.5 8h7M8.5 12h7M8.5 16h4"></path></svg></span>
+<span class="petak-teks"><b>Register</b><small>Daftarkan pasien dialisis</small></span>
+</button>
+<button class="petak" data-layar="tindakan" type="button">
+<span class="petak-ikon lc-merah"><svg aria-hidden="true" fill="none" height="26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" viewbox="0 0 24 24" width="26"><path d="M3 12h3.6l1.9-5.2 3.2 10.6L14 12h7"></path></svg></span>
+<span class="petak-teks"><b>Tindakan</b><small>Catat tindakan harian HD</small></span>
+</button>
+</div>
+<p class="note" id="menu-status">Memuat data unit…</p>
+</section>
+
+<!-- ============ reservasi ============ -->
+<section class="layar" hidden="" id="layar-reservasi">
+<div class="status-bed" id="status-bed-app" aria-live="polite"></div>
+<div class="form-res" id="form-reservasi">
+<label>Tanggal<input id="res-tanggal" type="date"/></label>
+<label>Bed<select id="res-bed"></select></label>
+<label class="span2">Shift<select id="res-shift"><option value="P">Pagi · 06.00–11.00</option><option value="S">Siang · 13.30–19.00</option></select></label>
+<label class="span2">Nama pasien<input autocomplete="off" id="res-nama" maxlength="60" placeholder="Tn Budi S" type="text"/></label>
+<label>Status pasien<select id="res-status"><option>Pasien Baru</option><option>Pasien Rutin</option></select></label>
+<label>RS perujuk<input id="res-rs" maxlength="40" placeholder="misal: RS Panti Rapih" type="text"/></label>
+<label class="span2">Alamat (opsional)<input id="res-alamat" maxlength="60" type="text"/></label>
+<label class="span2">Keterangan (opsional)<input id="res-ket" maxlength="200" type="text"/></label>
+<label>Diisi oleh (opsional)<input id="res-petugas" maxlength="30" placeholder="nama petugas" type="text"/></label>
+</div>
+<div class="app-aksi">
+<button class="btn" id="simpan-res" type="button">Simpan reservasi</button>
+<button class="btn btn-ghost" hidden="" id="batal-res" type="button">Batal</button>
+<span id="res-pesan" role="status"></span>
+</div>
+<h3 class="app-sub">Reservasi mendatang</h3>
+<ul class="docs kartu-res" id="daftar-res"></ul>
+</section>
+
+<!-- ============ daftar tunggu ============ -->
+<section class="layar" hidden="" id="layar-tunggu">
+<p class="lede">Pasien yang menunggu bed kosong pada tanggal yang dipilih. Tekan Pindahkan bila ada bed yang kosong.</p>
+<label class="app-tanggal">Tanggal<input id="tunggu-tanggal" type="date"/></label>
+<ul class="docs kartu-res" id="daftar-tunggu"></ul>
+</section>
+
+<!-- ============ register pasien ============ -->
+<section class="layar" hidden="" id="layar-register">
+<p class="lede">Tersimpan ke Google Sheet register pasien dialisis unit.</p>
+<div class="pakai-data">
+<label>Salin dari pasien terdaftar<select id="pilih-pasien-register"></select></label>
+<button class="btn btn-ghost" id="pakai-pasien-register" type="button">Pakai data</button>
+</div>
+<div class="form-res" id="form-register"></div>
+<div class="app-aksi">
+<button class="btn" id="simpan-register" type="button">Simpan register</button>
+<span id="register-pesan" role="status"></span>
+</div>
+</section>
+
+<!-- ============ tindakan harian ============ -->
+<section class="layar" hidden="" id="layar-tindakan">
+<p class="lede">Tersimpan ke tab bulan berjalan pada Google Sheet tindakan harian.</p>
+<div class="form-res" id="form-tindakan"></div>
+<div class="app-aksi">
+<button class="btn" id="simpan-tindakan" type="button">Simpan tindakan</button>
+<span id="tindakan-pesan" role="status"></span>
+</div>
+</section>
+
 </main>
-<script>location.replace('./?petugas=1');</script>
+
+<datalist id="rs-rujukan"></datalist>
+
+<script src="assets/js/konfig.js?v=63"></script>
+<script src="assets/js/petugas.js?v=63"></script>
 </body>
 </html>

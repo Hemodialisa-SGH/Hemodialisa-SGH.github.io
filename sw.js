@@ -7,6 +7,7 @@ const ASET = [
   './',
   './index.html',
   `./assets/css/style.css?v=${VER}`,
+  `./assets/js/konfig.js?v=${VER}`,
   `./assets/js/app.js?v=${VER}`,
   `./assets/js/en.js?v=${VER}`,
   './assets/img/logo.png',
@@ -15,6 +16,8 @@ const ASET = [
   './manifest.json',
   './petugas.html',
   './petugas.webmanifest?v=63',
+  `./assets/css/petugas.css?v=${VER}`,
+  `./assets/js/petugas.js?v=${VER}`,
   `./assets/img/galeri-1.jpg?v=63`
 ];
 
