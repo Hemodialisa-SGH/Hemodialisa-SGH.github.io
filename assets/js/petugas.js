@@ -87,8 +87,10 @@ function pesan(sel, teks, jenis, tetap) {
 /* ---------------- gerbang PIN ---------------- */
 
 async function periksaPin(pin) {
+  // aksi=pin hanya memeriksa PIN, tanpa membaca seluruh jadwal, agar cepat
   const dasar = KONFIG.API_URL;
-  const url = dasar + (dasar.includes('?') ? '&' : '?') + 'pin=' + encodeURIComponent(pin) + '&t=' + Date.now();
+  const url = dasar + (dasar.includes('?') ? '&' : '?') + 'aksi=pin&pin='
+    + encodeURIComponent(pin) + '&t=' + Date.now();
   const res = await fetch(url);
   const d = await res.json();
   return { ok: !!(d.ok && d.staf), pesan: d.pesan || '' };
@@ -212,7 +214,15 @@ function pemakaiBed() {
 
 function perbaruiPilihanBed(pertahankan) {
   const sel = $('#res-bed');
-  if (!$('#res-tanggal').value) $('#res-tanggal').value = isoHariIni;
+  if (!$('#res-tanggal').value) /* Apps Script lambat pada permintaan pertama karena skripnya baru dinyalakan.
+   Sapaan kosong saat aplikasi dibuka membuatnya sudah hangat ketika PIN
+   dikirim, sehingga menunggunya terasa jauh lebih singkat. */
+if (KONFIG.API_URL && !pinStaf()) {
+  const dasar = KONFIG.API_URL;
+  fetch(dasar + (dasar.includes('?') ? '&' : '?') + 'aksi=ping&t=' + Date.now()).catch(() => {});
+}
+
+$('#res-tanggal').value = isoHariIni;
   const terpakai = pemakaiBed();
   const lama = pertahankan === false ? '' : sel.value;
   sel.innerHTML = '';
@@ -581,6 +591,14 @@ pasangForm({ wadah: '#form-tindakan', tombol: '#simpan-tindakan', pesan: '#tinda
 })();
 
 /* ---------------- mulai ---------------- */
+
+/* Apps Script lambat pada permintaan pertama karena skripnya baru dinyalakan.
+   Sapaan kosong saat aplikasi dibuka membuatnya sudah hangat ketika PIN
+   dikirim, sehingga menunggunya terasa jauh lebih singkat. */
+if (KONFIG.API_URL && !pinStaf()) {
+  const dasar = KONFIG.API_URL;
+  fetch(dasar + (dasar.includes('?') ? '&' : '?') + 'aksi=ping&t=' + Date.now()).catch(() => {});
+}
 
 $('#res-tanggal').value = isoHariIni;
 $('#tunggu-tanggal').value = isoHariIni;

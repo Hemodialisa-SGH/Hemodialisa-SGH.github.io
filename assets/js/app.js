@@ -581,7 +581,7 @@ $('#buka-staf').addEventListener('click', async () => {
   pesan.textContent = T('Memeriksa PIN…', 'Checking PIN…');
   try {
     const url = KONFIG.API_URL + (KONFIG.API_URL.includes('?') ? '&' : '?')
-      + 'pin=' + encodeURIComponent(pin) + '&t=' + Date.now();
+      + 'aksi=pin&pin=' + encodeURIComponent(pin) + '&t=' + Date.now();
     const res = await fetch(url);
     const d = await res.json();
     if (d.ok && d.staf) terimaPin(pin);
@@ -594,6 +594,14 @@ $('#buka-staf').addEventListener('click', async () => {
   }
 });
 $('#pin').addEventListener('keydown', e => { if (e.key === 'Enter') $('#buka-staf').click(); });
+/* Menghangatkan Apps Script begitu petugas mulai mengetik PIN, supaya
+   pemeriksaannya tidak menunggu skrip dinyalakan lebih dahulu. */
+$('#pin').addEventListener('focus', function hangatkan() {
+  $('#pin').removeEventListener('focus', hangatkan);
+  if (!KONFIG.API_URL) return;
+  fetch(KONFIG.API_URL + (KONFIG.API_URL.includes('?') ? '&' : '?')
+    + 'aksi=ping&t=' + Date.now()).catch(() => {});
+});
 
 $('#kunci-staf').addEventListener('click', () => {
   try { sessionStorage.removeItem('hd_staf'); } catch (e) {}

@@ -506,7 +506,16 @@ function bangunTampilan(bulanIso) {
 function doGet(e) {
   try {
     const p = (e && e.parameter) || {};
+    // Sapaan ringan tanpa menyentuh Sheet, dipakai situs untuk menghangatkan
+    // skrip sebelum petugas selesai mengetik PIN.
+    if (p.aksi === 'ping') return json({ ok: true });
     if (p.aksi === 'testimoni') return json({ ok: true, testimoni: ambilTestimoni() });
+    // Pemeriksaan PIN saja: tidak membaca Database sama sekali, supaya pintu
+    // masuk aplikasi dan Ruang staf terbuka secepat mungkin.
+    if (p.aksi === 'pin') {
+      const cek = cekPin(p.pin);
+      return json({ ok: true, staf: cek.ok, pesan: cek.pesan || '' });
+    }
     if (p.aksi === 'pasien') {
       // daftar pasien memuat data pribadi, jadi hanya untuk petugas ber-PIN
       if (!cekPin(p.pin).ok) return json({ ok: false, pesan: 'PIN tidak cocok.' });
@@ -689,7 +698,9 @@ function tulisBarisSheet_(sh, data) {
 function simpanRegister(d) {
   const ss = SpreadsheetApp.openById(SHEET_REGISTER);
   const sh = ss.getSheetByName(TAB_REGISTER) || ss.getSheets()[0];
-  return tulisBarisSheet_(sh, d);
+  const hasil = tulisBarisSheet_(sh, d);
+  try { CacheService.getScriptCache().remove('daftar_pasien'); } catch (err) {}
+  return hasil;
 }
 
 function simpanTindakan(d) {
@@ -714,6 +725,19 @@ function isoDariSel_(v) {
  * kolom yang sudah pernah dicatat. Hanya dikirim bila PIN staf benar.
  */
 function daftarPasien() {
+  // Daftar ini jarang berubah dalam hitungan menit, jadi disimpan sebentar di
+  // cache skrip agar pembukaan aplikasi berikutnya tidak menunggu Sheet dibaca.
+  const cache = CacheService.getScriptCache();
+  const tersimpan = cache.get('daftar_pasien');
+  if (tersimpan) {
+    try { return JSON.parse(tersimpan); } catch (err) { /* lanjut baca Sheet */ }
+  }
+  const hasil = bacaDaftarPasien_();
+  try { cache.put('daftar_pasien', JSON.stringify(hasil), 300); } catch (err) { /* terlalu besar */ }
+  return hasil;
+}
+
+function bacaDaftarPasien_() {
   const ss = SpreadsheetApp.openById(SHEET_REGISTER);
   const sh = ss.getSheetByName(TAB_REGISTER) || ss.getSheets()[0];
   const peta = petaKolomSheet_(sh);
