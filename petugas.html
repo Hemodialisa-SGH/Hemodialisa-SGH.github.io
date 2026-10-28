@@ -7,16 +7,16 @@
 <meta content="noindex, nofollow" name="robots"/>
 <title>HD Sedayu — Petugas Unit Hemodialisis</title>
 <meta content="Reservasi, daftar tunggu, register pasien dialisis, dan tindakan harian Unit Hemodialisis RS Sedayu General Hospital." name="description"/>
-<link href="petugas.webmanifest?v=69" rel="manifest"/>
-<link href="assets/img/favicon-32.png?v=69" rel="icon" sizes="32x32" type="image/png"/>
-<link href="assets/img/icon-192.png?v=69" rel="icon" sizes="192x192" type="image/png"/>
-<link href="assets/img/apple-touch-icon.png?v=69" rel="apple-touch-icon"/>
+<link href="petugas.webmanifest?v=70" rel="manifest"/>
+<link href="assets/img/favicon-32.png?v=70" rel="icon" sizes="32x32" type="image/png"/>
+<link href="assets/img/icon-192.png?v=70" rel="icon" sizes="192x192" type="image/png"/>
+<link href="assets/img/apple-touch-icon.png?v=70" rel="apple-touch-icon"/>
 <meta content="yes" name="mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <meta content="HD Sedayu" name="apple-mobile-web-app-title"/>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<link href="assets/css/style.css?v=69" rel="stylesheet"/>
-<link href="assets/css/petugas.css?v=69" rel="stylesheet"/>
+<link href="assets/css/style.css?v=70" rel="stylesheet"/>
+<link href="assets/css/petugas.css?v=70" rel="stylesheet"/>
 </head>
 <body class="app">
 <div aria-hidden="true" class="latar-foto"></div>
@@ -70,6 +70,10 @@
 <span class="petak-ikon lc-hijau"><svg aria-hidden="true" fill="none" height="26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" viewbox="0 0 24 24" width="26"><path d="M5 3.5h11.5a2.5 2.5 0 0 1 2.5 2.5v14H7.5A2.5 2.5 0 0 1 5 17.5z"></path><path d="M8.5 8h7M8.5 12h7M8.5 16h4"></path></svg></span>
 <span class="petak-teks"><b>Register</b><small>Daftarkan pasien dialisis</small></span>
 </button>
+<button class="petak" data-layar="log" hidden="" type="button">
+<span class="petak-ikon lc-biru"><svg aria-hidden="true" fill="none" height="26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" viewbox="0 0 24 24" width="26"><path d="M5 4.5h14v15H5z"></path><path d="M8.5 9h7M8.5 13h7M8.5 17h4"></path></svg></span>
+<span class="petak-teks"><b>Catatan aktivitas</b><small>Siapa mengerjakan apa</small></span>
+</button>
 <button class="petak" data-layar="tindakan" type="button">
 <span class="petak-ikon lc-merah"><svg aria-hidden="true" fill="none" height="26" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" viewbox="0 0 24 24" width="26"><path d="M3 12h3.6l1.9-5.2 3.2 10.6L14 12h7"></path></svg></span>
 <span class="petak-teks"><b>Tindakan</b><small>Catat tindakan harian HD</small></span>
@@ -108,6 +112,12 @@
 <ul class="docs kartu-res" id="daftar-tunggu"></ul>
 </section>
 
+<!-- ============ catatan aktivitas ============ -->
+<section class="layar" hidden="" id="layar-log">
+<p class="lede">Urutan terbaru di atas. Catatan ini mengikuti PIN yang dipakai, jadi tiap anggota tim perlu memakai PIN-nya sendiri.</p>
+<ul class="docs kartu-res" id="daftar-log"></ul>
+</section>
+
 <!-- ============ register pasien ============ -->
 <section class="layar" hidden="" id="layar-register">
 <p class="lede">Tersimpan ke Google Sheet register pasien dialisis unit.</p>
@@ -136,7 +146,7 @@
 
 <datalist id="rs-rujukan"></datalist>
 
-<script src="assets/js/konfig.js?v=69"></script>
-<script src="assets/js/petugas.js?v=69"></script>
+<script src="assets/js/konfig.js?v=70"></script>
+<script src="assets/js/petugas.js?v=70"></script>
 </body>
 </html>

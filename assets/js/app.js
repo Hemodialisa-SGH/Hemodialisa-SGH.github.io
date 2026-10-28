@@ -535,7 +535,51 @@ $$('.tab').forEach(t => {
 /* ---------------- ruang staf ---------------- */
 
 const pinStaf = () => { try { return sessionStorage.getItem('hd_staf') || ''; } catch (e) { return ''; } };
+const namaStaf = () => { try { return sessionStorage.getItem('hd_nama') || ''; } catch (e) { return ''; } };
+const peranStaf = () => { try { return sessionStorage.getItem('hd_peran') || ''; } catch (e) { return ''; } };
+const adalahPJ = () => peranStaf().toLowerCase().indexOf('pj') === 0;
 const staffTerbuka = () => !!pinStaf();
+
+function tampilkanIdentitas() {
+  const el = $('#staf-nama');
+  if (el) {
+    el.textContent = namaStaf()
+      ? T(`Masuk sebagai ${namaStaf()}${peranStaf() ? ' · ' + peranStaf() : ''}`,
+          `Signed in as ${namaStaf()}${peranStaf() ? ' · ' + peranStaf() : ''}`)
+      : '';
+  }
+  const bagian = $('#bagian-log');
+  if (bagian) bagian.hidden = !adalahPJ();
+  const diisi = $('#res-petugas');
+  if (diisi && !diisi.value) diisi.value = namaStaf();
+}
+
+/* Catatan aktivitas hanya dibuka penanggung jawab unit; server pun menolak
+   permintaan dari peran lain, jadi penyembunyian ini sekadar merapikan. */
+async function muatLog() {
+  const ul = $('#daftar-log');
+  if (!ul) return;
+  ul.innerHTML = '<li class="note">' + T('Memuat catatan…', 'Loading the log…') + '</li>';
+  try {
+    const url = KONFIG.API_URL + (KONFIG.API_URL.includes('?') ? '&' : '?')
+      + 'aksi=log&jumlah=150&pin=' + encodeURIComponent(pinStaf()) + '&t=' + Date.now();
+    const res = await fetch(url);
+    const d = await res.json();
+    if (!d.ok) { ul.innerHTML = `<li class="note">${esc(d.pesan || 'Catatan tidak bisa dibuka.')}</li>`; return; }
+    if (!d.log.length) { ul.innerHTML = '<li class="note">' + T('Belum ada aktivitas tercatat.', 'No activity recorded yet.') + '</li>'; return; }
+    ul.innerHTML = '';
+    d.log.forEach(b => {
+      const li = document.createElement('li');
+      li.className = 'res-item';
+      li.innerHTML = `<div class="res-utama"><p class="res-kepala"><b>${esc(b.nama)}</b>`
+        + `<span class="res-bed">${esc(b.aksi)}</span><span class="res-jam">${esc(b.waktu)}</span></p>`
+        + (b.rincian ? `<p class="res-ket terbuka">${esc(b.rincian)}</p>` : '') + '</div>';
+      ul.appendChild(li);
+    });
+  } catch (e) {
+    ul.innerHTML = '<li class="note">' + T('Catatan gagal dimuat.', 'The log could not be loaded.') + '</li>';
+  }
+}
 
 function bukaStaf() {
   $('#gerbang-staf').hidden = true;
@@ -554,11 +598,16 @@ function bukaStaf() {
   }
 }
 
-function terimaPin(pin) {
-  try { sessionStorage.setItem('hd_staf', pin); } catch (e) {}
+function terimaPin(pin, nama, peran) {
+  try {
+    sessionStorage.setItem('hd_staf', pin);
+    sessionStorage.setItem('hd_nama', nama || '');
+    sessionStorage.setItem('hd_peran', peran || '');
+  } catch (e) {}
   $('#pin-pesan').textContent = '';
   $('#pin').value = '';
   bukaStaf();
+  tampilkanIdentitas();
   if (KONFIG.API_URL) { muatData(); muatPasien(); }   // muat ulang agar inisial ikut terkirim
 }
 
@@ -584,7 +633,7 @@ $('#buka-staf').addEventListener('click', async () => {
       + 'aksi=pin&pin=' + encodeURIComponent(pin) + '&t=' + Date.now();
     const res = await fetch(url);
     const d = await res.json();
-    if (d.ok && d.staf) terimaPin(pin);
+    if (d.ok && d.staf) terimaPin(pin, d.nama, d.peran);
     else pesan.textContent = (d && d.pesan) || salah;
   } catch (e) {
     pesan.textContent = T('Tidak bisa memeriksa PIN. Periksa sambungan internet, lalu coba lagi.',
@@ -603,8 +652,15 @@ $('#pin').addEventListener('focus', function hangatkan() {
     + 'aksi=ping&t=' + Date.now()).catch(() => {});
 });
 
+const tombolLog = $('#muat-log');
+if (tombolLog) tombolLog.addEventListener('click', muatLog);
+
 $('#kunci-staf').addEventListener('click', () => {
-  try { sessionStorage.removeItem('hd_staf'); } catch (e) {}
+  try {
+    sessionStorage.removeItem('hd_staf');
+    sessionStorage.removeItem('hd_nama');
+    sessionStorage.removeItem('hd_peran');
+  } catch (e) {}
   $('#isi-staf').hidden = true;
   $('#gerbang-staf').hidden = false;
   gambarPapan($('#papan-isi'), isoHariIni, false);

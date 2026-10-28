@@ -1,7 +1,7 @@
 /* Unit Hemodialisis RS Sedayu General Hospital — service worker
    Naikkan VER setiap kali isi situs berubah, dan samakan angkanya dengan
    ?v= pada tautan style.css dan app.js di index.html. */
-const VER = 69;
+const VER = 70;
 const CACHE = 'hd-rssgh-v' + VER;
 const ASET = [
   './',
@@ -11,14 +11,14 @@ const ASET = [
   `./assets/js/app.js?v=${VER}`,
   `./assets/js/en.js?v=${VER}`,
   './assets/img/logo.png',
-  './assets/img/unit-hd.jpg?v=69',
-  './assets/img/favicon-32.png?v=69',
+  './assets/img/unit-hd.jpg?v=70',
+  './assets/img/favicon-32.png?v=70',
   './manifest.json',
   './petugas.html',
-  './petugas.webmanifest?v=69',
+  './petugas.webmanifest?v=70',
   `./assets/css/petugas.css?v=${VER}`,
   `./assets/js/petugas.js?v=${VER}`,
-  `./assets/img/galeri-1.jpg?v=69`
+  `./assets/img/galeri-1.jpg?v=70`
 ];
 
 /* Satu berkas yang gagal diambil tidak boleh menggagalkan pemasangan service

@@ -31,6 +31,11 @@
 
 const TAB_DB = 'Database';
 const TAB_SARAN = 'Saran';
+const TAB_PETUGAS = 'Petugas';
+const KOLOM_PETUGAS = ['Nama', 'PIN', 'Peran', 'Aktif'];
+const TAB_LOG = 'Log';
+const KOLOM_LOG = ['Waktu', 'Petugas', 'Peran', 'Aksi', 'Rincian'];
+const MAKS_LOG = 5000;              // baris log tertua dibuang setelah ini
 const KOLOM_SARAN = ['Waktu', 'Nama', 'Kategori', 'Nilai', 'Pesan', 'Izin tampil', 'Ditampilkan'];
 const TAB_TAMPIL = 'Tampilan';
 const KOLOM = ['Tanggal', 'Mulai', 'Selesai', 'Bed', 'Status', 'RS perujuk', 'Alamat', 'Pasien', 'Keterangan', 'ID', 'Dicatat', 'Petugas'];
@@ -69,6 +74,25 @@ function siapkan() {
     sr.getRange(1, 1, 1, KOLOM_SARAN.length).setValues([KOLOM_SARAN]).setFontWeight('bold');
     sr.setFrozenRows(1);
     sr.setColumnWidth(5, 420);
+  }
+  let pt = ss.getSheetByName(TAB_PETUGAS);
+  if (!pt) {
+    pt = ss.insertSheet(TAB_PETUGAS, ss.getNumSheets());
+    pt.getRange(1, 1, 1, KOLOM_PETUGAS.length).setValues([KOLOM_PETUGAS]).setFontWeight('bold');
+    pt.setFrozenRows(1);
+    pt.getRange('B:B').setNumberFormat('@');     // PIN tetap sebagai teks
+    pt.getRange(2, 1, 2, KOLOM_PETUGAS.length).setValues([
+      ['Penanggung jawab HD', '123456', 'PJ', 'ya'],
+      ['Contoh perawat', '234567', 'Perawat', 'tidak'],
+    ]);
+    pt.setColumnWidths(1, KOLOM_PETUGAS.length, 160);
+  }
+  let lg = ss.getSheetByName(TAB_LOG);
+  if (!lg) {
+    lg = ss.insertSheet(TAB_LOG, ss.getNumSheets());
+    lg.getRange(1, 1, 1, KOLOM_LOG.length).setValues([KOLOM_LOG]).setFontWeight('bold');
+    lg.setFrozenRows(1);
+    lg.setColumnWidth(1, 150); lg.setColumnWidth(2, 180); lg.setColumnWidth(5, 420);
   }
   const props = PropertiesService.getScriptProperties();
   if (!props.getProperty('PIN_STAF')) props.setProperty('PIN_STAF', '1209');
@@ -514,14 +538,24 @@ function doGet(e) {
     // masuk aplikasi dan Ruang staf terbuka secepat mungkin.
     if (p.aksi === 'pin') {
       const cek = cekPin(p.pin);
-      return json({ ok: true, staf: cek.ok, pesan: cek.pesan || '' });
+      return json({ ok: true, staf: cek.ok, nama: cek.nama || '', peran: cek.peran || '',
+        pesan: cek.pesan || '' });
+    }
+    if (p.aksi === 'log') {
+      const cek = cekPin(p.pin);
+      // catatan aktivitas hanya untuk penanggung jawab unit
+      if (!cek.ok || String(cek.peran || '').toLowerCase().indexOf('pj') !== 0) {
+        return json({ ok: false, pesan: 'Catatan aktivitas hanya untuk penanggung jawab unit.' });
+      }
+      return json({ ok: true, log: ambilLog(p.jumlah) });
     }
     if (p.aksi === 'pasien') {
       // daftar pasien memuat data pribadi, jadi hanya untuk petugas ber-PIN
       if (!cekPin(p.pin).ok) return json({ ok: false, pesan: 'PIN tidak cocok.' });
       return json({ ok: true, pasien: daftarPasien() });
     }
-    const staf = cekPin(p.pin).ok;
+    const cek = cekPin(p.pin);
+    const staf = cek.ok;
     const hariIni = hariIniIso();
     const semua = jadwalGabungan_();
     const jadwal = semua
@@ -530,7 +564,8 @@ function doGet(e) {
         ? { tanggal: r.tanggal, mulai: r.mulai, selesai: r.selesai, bed: r.bed, inisial: inisial(r.nama),
             nama: r.nama, status: r.status, rs: r.rs, alamat: r.alamat, ket: r.ket, id: r.id }
         : { tanggal: r.tanggal, mulai: r.mulai, selesai: r.selesai, bed: r.bed });
-    return json({ ok: true, staf: staf, jadwal: jadwal, rekap: rekapBulanan(semua, hariIni) });
+    return json({ ok: true, staf: staf, nama: cek.nama || '', peran: cek.peran || '',
+      jadwal: jadwal, rekap: rekapBulanan(semua, hariIni) });
   } catch (err) {
     return json({ ok: false, pesan: String(err.message || err) });
   }
@@ -548,12 +583,28 @@ function doPost(e) {
     const pin = cekPin(body.pin);
     if (!pin.ok) return json({ ok: false, pesan: pin.pesan });
     kunci.waitLock(15000);
-    if (body.aksi === 'register') return json(simpanRegister(body.data || {}));
-    if (body.aksi === 'tindakan') return json(simpanTindakan(body.data || {}));
-    if (body.aksi === 'tambah') return json(simpan(body.data || {}, ''));
-    if (body.aksi === 'ubah') return json(simpan(body.data || {}, String(body.id || '')));
-    if (body.aksi === 'hapus') return json(hapus(String(body.id || '')));
-    return json({ ok: false, pesan: 'Aksi tidak dikenal.' });
+    const d = body.data || {};
+    let hasil;
+    if (body.aksi === 'register') {
+      hasil = simpanRegister(d);
+      if (hasil.ok) catatLog_(pin, 'Register pasien', d['Nama Pasien'] || '');
+    } else if (body.aksi === 'tindakan') {
+      hasil = simpanTindakan(d);
+      if (hasil.ok) catatLog_(pin, 'Tindakan harian',
+        (d['Nama Pasien'] || '') + ' · ' + (d['Tanggal HD'] || '') + (hasil.tab ? ' · tab ' + hasil.tab : ''));
+    } else if (body.aksi === 'tambah') {
+      hasil = simpan(d, '', pin);
+      if (hasil.ok) catatLog_(pin, 'Reservasi baru', rincianReservasi_(d));
+    } else if (body.aksi === 'ubah') {
+      hasil = simpan(d, String(body.id || ''), pin);
+      if (hasil.ok) catatLog_(pin, 'Ubah reservasi', rincianReservasi_(d));
+    } else if (body.aksi === 'hapus') {
+      hasil = hapus(String(body.id || ''));
+      if (hasil.ok) catatLog_(pin, 'Hapus reservasi', hasil.rincian || String(body.id || ''));
+    } else {
+      return json({ ok: false, pesan: 'Aksi tidak dikenal.' });
+    }
+    return json(hasil);
   } catch (err) {
     return json({ ok: false, pesan: String(err.message || err) });
   } finally {
@@ -561,7 +612,7 @@ function doPost(e) {
   }
 }
 
-function simpan(d, idLama) {
+function simpan(d, idLama, orang) {
   const tanggal = teksTanggal(d.tanggal);
   const mulai = teksJam(d.mulai);
   const selesai = teksJam(d.selesai);
@@ -589,7 +640,8 @@ function simpan(d, idLama) {
   }
 
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB_DB);
-  const petugas = String(d.petugas || '').trim().slice(0, 30);
+  const petugas = (String(d.petugas || '').trim()
+    || (orang && orang.nama) || '').slice(0, 40);
   const stempel = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm');
   const isi = [tanggal, mulai, selesai, bed, String(d.status || '').slice(0, 20), String(d.rs || '').slice(0, 40),
     String(d.alamat || '').slice(0, 60), nama, String(d.ket || '').slice(0, 200)];
@@ -630,7 +682,9 @@ function hapus(id) {
   const catatan = hapusDariTabBulan_({ tanggal: teksTanggal(lama[0]), mulai: teksJam(lama[1]),
     bed: normBed(lama[3]), nama: String(lama[7] || '') });
   lupakanJadwal_();
-  return { ok: true, catatan: catatan };
+  return { ok: true, catatan: catatan,
+    rincian: [teksTanggal(lama[0]), teksJam(lama[1]), normBed(lama[3]), String(lama[7] || '')]
+      .filter(Boolean).join(' · ') };
 }
 
 /* ============ register pasien dan tindakan harian ============
@@ -960,14 +1014,104 @@ function rekapBulanan(semua, hariIni) {
 }
 
 /** PIN dengan pembatasan percobaan: 5 kali salah → diblokir 15 menit. */
+/**
+ * Memeriksa PIN dan sekaligus mengenali siapa yang memakainya.
+ * Sumber utamanya tab Petugas: satu baris per anggota tim, dengan PIN
+ * masing-masing. PIN unit di properti skrip tetap diterima sebagai cadangan,
+ * misalnya saat tab Petugas belum dibuat atau PIN seseorang lupa.
+ * Mengembalikan { ok, nama, peran, pesan }.
+ */
 function cekPin(pin) {
-  const benar = PropertiesService.getScriptProperties().getProperty('PIN_STAF');
   const cache = CacheService.getScriptCache();
   const salah = Number(cache.get('salah') || 0);
-  if (salah >= MAKS_SALAH) return { ok: false, pesan: 'Terlalu banyak percobaan PIN. Coba lagi dalam ' + BLOKIR_MENIT + ' menit.' };
-  if (pin && String(pin) === benar) { cache.remove('salah'); return { ok: true }; }
-  if (pin) cache.put('salah', String(salah + 1), BLOKIR_MENIT * 60);
+  if (salah >= MAKS_SALAH) {
+    return { ok: false, pesan: 'Terlalu banyak percobaan PIN. Coba lagi dalam ' + BLOKIR_MENIT + ' menit.' };
+  }
+  const diketik = String(pin == null ? '' : pin).trim();
+  if (!diketik) return { ok: false, pesan: 'PIN tidak cocok.' };
+
+  const orang = daftarPetugas_().filter(p => p.pin === diketik)[0];
+  if (orang) {
+    cache.remove('salah');
+    return { ok: true, nama: orang.nama, peran: orang.peran };
+  }
+  const umum = PropertiesService.getScriptProperties().getProperty('PIN_STAF');
+  if (umum && diketik === String(umum)) {
+    cache.remove('salah');
+    return { ok: true, nama: 'Petugas unit', peran: 'Umum' };
+  }
+  cache.put('salah', String(salah + 1), BLOKIR_MENIT * 60);
   return { ok: false, pesan: 'PIN tidak cocok.' };
+}
+
+/** Isi tab Petugas, hanya baris yang ditandai aktif. Disimpan sebentar. */
+function daftarPetugas_() {
+  const cache = CacheService.getScriptCache();
+  const tersimpan = cache.get('daftar_petugas');
+  if (tersimpan) {
+    try { return JSON.parse(tersimpan); } catch (err) { /* lanjut membaca */ }
+  }
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB_PETUGAS);
+  let hasil = [];
+  if (sh && sh.getLastRow() > 1) {
+    hasil = sh.getRange(2, 1, sh.getLastRow() - 1, KOLOM_PETUGAS.length).getValues()
+      .map(b => ({
+        nama: String(b[0] || '').trim(),
+        pin: String(b[1] == null ? '' : b[1]).trim(),
+        peran: String(b[2] || '').trim() || 'Petugas',
+        aktif: String(b[3] || 'ya').trim().toLowerCase(),
+      }))
+      .filter(p => p.nama && p.pin && p.aktif !== 'tidak' && p.aktif !== 'no');
+  }
+  try { cache.put('daftar_petugas', JSON.stringify(hasil), 120); } catch (err) {}
+  return hasil;
+}
+
+/** Dipanggil setelah daftar petugas diubah, agar PIN baru langsung berlaku. */
+function segarkanPetugas() {
+  try { CacheService.getScriptCache().remove('daftar_petugas'); } catch (err) {}
+  SpreadsheetApp.getActive().toast('Daftar petugas dimuat ulang: '
+    + daftarPetugas_().length + ' orang aktif.');
+}
+
+function rincianReservasi_(d) {
+  return [teksTanggal(d.tanggal), teksJam(d.mulai) + '–' + teksJam(d.selesai),
+    normBed(d.bed), String(d.nama || '')].filter(Boolean).join(' · ');
+}
+
+/* ==================== catatan aktivitas ====================
+   Setiap penyimpanan, perubahan, dan penghapusan dicatat di tab Log beserta
+   nama petugas yang PIN-nya dipakai. Dengan begitu penanggung jawab unit bisa
+   melihat siapa mengerjakan apa. Catatan ini hanya sekuat kerahasiaan PIN
+   masing-masing: PIN yang dipinjamkan membuat catatannya ikut salah. */
+
+function catatLog_(orang, aksi, rincian) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sh = ss.getSheetByName(TAB_LOG);
+    if (!sh) {
+      sh = ss.insertSheet(TAB_LOG, ss.getNumSheets());
+      sh.getRange(1, 1, 1, KOLOM_LOG.length).setValues([KOLOM_LOG]).setFontWeight('bold');
+      sh.setFrozenRows(1);
+    }
+    sh.appendRow([Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm:ss'),
+      (orang && orang.nama) || 'Tidak dikenal', (orang && orang.peran) || '',
+      aksi, String(rincian || '').slice(0, 500)]);
+    const lebih = sh.getLastRow() - 1 - MAKS_LOG;
+    if (lebih > 0) sh.deleteRows(2, lebih);     // baris tertua dibuang
+  } catch (err) { /* catatan tidak boleh menggagalkan pekerjaan */ }
+}
+
+/** Isi tab Log terbaru, hanya untuk penanggung jawab. */
+function ambilLog(jumlah) {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB_LOG);
+  if (!sh || sh.getLastRow() < 2) return [];
+  const n = Math.min(Number(jumlah) || 100, 300);
+  const mulai = Math.max(2, sh.getLastRow() - n + 1);
+  return sh.getRange(mulai, 1, sh.getLastRow() - mulai + 1, KOLOM_LOG.length).getValues()
+    .map(b => ({ waktu: String(b[0] || ''), nama: String(b[1] || ''), peran: String(b[2] || ''),
+      aksi: String(b[3] || ''), rincian: String(b[4] || '') }))
+    .reverse();
 }
 
 function inisial(nama) {

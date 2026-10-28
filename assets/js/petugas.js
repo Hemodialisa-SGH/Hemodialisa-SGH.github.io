@@ -45,6 +45,9 @@ let EDIT_ID = '';
 /* ---------------- sambungan ke Apps Script ---------------- */
 
 const pinStaf = () => { try { return sessionStorage.getItem('hd_staf') || ''; } catch (e) { return ''; } };
+const namaStaf = () => { try { return sessionStorage.getItem('hd_nama') || ''; } catch (e) { return ''; } };
+const peranStaf = () => { try { return sessionStorage.getItem('hd_peran') || ''; } catch (e) { return ''; } };
+const adalahPJ = () => peranStaf().toLowerCase().indexOf('pj') === 0;
 
 function alamatApi(param) {
   const dasar = KONFIG.API_URL;
@@ -93,7 +96,7 @@ async function periksaPin(pin) {
     + encodeURIComponent(pin) + '&t=' + Date.now();
   const res = await fetch(url);
   const d = await res.json();
-  return { ok: !!(d.ok && d.staf), pesan: d.pesan || '' };
+  return { ok: !!(d.ok && d.staf), nama: d.nama || '', peran: d.peran || '', pesan: d.pesan || '' };
 }
 
 $('#buka').addEventListener('click', async () => {
@@ -107,7 +110,11 @@ $('#buka').addEventListener('click', async () => {
   try {
     const hasil = await periksaPin(pin);
     if (!hasil.ok) { pesan('#pin-pesan', hasil.pesan || salah, 'err', true); return; }
-    try { sessionStorage.setItem('hd_staf', pin); } catch (e) {}
+    try {
+      sessionStorage.setItem('hd_staf', pin);
+      sessionStorage.setItem('hd_nama', hasil.nama || '');
+      sessionStorage.setItem('hd_peran', hasil.peran || '');
+    } catch (e) {}
     $('#pin').value = '';
     pesan('#pin-pesan', '', '');
     masuk();
@@ -120,12 +127,27 @@ $('#buka').addEventListener('click', async () => {
 $('#pin').addEventListener('keydown', e => { if (e.key === 'Enter') $('#buka').click(); });
 
 $('#kunci').addEventListener('click', () => {
-  try { sessionStorage.removeItem('hd_staf'); } catch (e) {}
+  try {
+    sessionStorage.removeItem('hd_staf');
+    sessionStorage.removeItem('hd_nama');
+    sessionStorage.removeItem('hd_peran');
+  } catch (e) {}
   DATA_JADWAL = []; DATA_PASIEN = [];
   keLayar('gerbang');
 });
 
 function masuk() {
+  const sapa = $('#app-sapa');
+  if (sapa) {
+    sapa.textContent = namaStaf()
+      ? `Masuk sebagai ${namaStaf()}${peranStaf() ? ' · ' + peranStaf() : ''}`
+      : 'Pilih pekerjaan';
+  }
+  const petakLog = $('.petak[data-layar="log"]');
+  if (petakLog) petakLog.hidden = !adalahPJ();
+  // kolom "Diisi oleh" terisi sendiri dengan nama yang sedang masuk
+  const diisi = $('#res-petugas');
+  if (diisi && !diisi.value) diisi.value = namaStaf();
   keLayar('menu');
   muatSemua();
 }
@@ -135,6 +157,7 @@ function masuk() {
 const JUDUL = {
   gerbang: 'HD Sedayu',
   menu: 'HD Sedayu',
+  log: 'Catatan aktivitas',
   reservasi: 'Reservasi',
   tunggu: 'Waiting list',
   register: 'Register pasien dialisis',
@@ -155,6 +178,7 @@ $$('.petak').forEach(b => b.addEventListener('click', () => {
   keLayar(nama);
   if (nama === 'reservasi') { perbaruiPilihanBed(false); gambarDaftarRes(); }
   if (nama === 'tunggu') gambarTunggu();
+  if (nama === 'log') muatLog();
 }));
 $('#kembali').addEventListener('click', () => keLayar('menu'));
 
@@ -444,6 +468,32 @@ function gambarTunggu() {
   });
 }
 $('#tunggu-tanggal').addEventListener('change', gambarTunggu);
+
+/* ---------------- catatan aktivitas (penanggung jawab) ---------------- */
+
+async function muatLog() {
+  const ul = $('#daftar-log');
+  if (!ul) return;
+  ul.innerHTML = '<li class="note">Memuat catatan…</li>';
+  try {
+    const res = await fetch(alamatApi('aksi=log&jumlah=150'));
+    const d = await res.json();
+    if (!d.ok) { ul.innerHTML = `<li class="note">${esc(d.pesan || 'Catatan tidak bisa dibuka.')}</li>`; return; }
+    if (!d.log.length) { ul.innerHTML = '<li class="note">Belum ada aktivitas tercatat.</li>'; return; }
+    ul.innerHTML = '';
+    d.log.forEach(b => {
+      const li = document.createElement('li');
+      li.className = 'res-item';
+      li.innerHTML = `<div class="res-utama"><p class="res-kepala"><b>${esc(b.nama)}</b>`
+        + `<span class="res-bed">${esc(b.aksi)}</span>`
+        + `<span class="res-jam">${esc(b.waktu)}</span></p>`
+        + (b.rincian ? `<p class="res-ket terbuka">${esc(b.rincian)}</p>` : '') + '</div>';
+      ul.appendChild(li);
+    });
+  } catch (e) {
+    ul.innerHTML = '<li class="note">Catatan gagal dimuat. Periksa sambungan internet.</li>';
+  }
+}
 
 /* ---------------- isian register dan tindakan ---------------- */
 

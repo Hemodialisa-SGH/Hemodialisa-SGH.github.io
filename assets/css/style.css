@@ -413,7 +413,7 @@ body{padding-bottom:84px}
    tulisan dan kartu tetap jelas terbaca. */
 .latar-foto{position:fixed;inset:0;z-index:-2;background:var(--paper)}
 .latar-foto::before{content:"";position:absolute;inset:0;
-  background:url("../img/galeri-1.jpg?v=69") center/cover no-repeat;
+  background:url("../img/galeri-1.jpg?v=70") center/cover no-repeat;
   opacity:.38;filter:saturate(.8)}
 .latar-foto::after{content:"";position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(239,243,247,.72) 0%,rgba(239,243,247,.82) 45%,rgba(239,243,247,.9) 100%)}
