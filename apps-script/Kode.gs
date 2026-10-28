@@ -708,9 +708,20 @@ function simpanRegister(d) {
 
 function simpanTindakan(d) {
   const ss = SpreadsheetApp.openById(SHEET_TINDAKAN);
-  const sh = cariTabBulan_(ss, d['Tanggal HD'] || hariIniIso()) || ss.getSheets()[0];
+  const tanggal = d['Tanggal HD'] || hariIniIso();
+  const sh = cariTabBulan_(ss, tanggal);
+  /* Tanpa tab bulan yang cocok, tindakan tidak ditulis ke tab sembarang.
+     Lebih baik petugas diberi tahu untuk membuat tabnya lebih dahulu
+     daripada satu baris mendarat di bulan yang salah. */
+  if (!sh) {
+    const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    const n = Number(String(tanggal).split('-')[1]) - 1;
+    return { ok: false, pesan: 'Tab bulan ' + (bulan[n] || tanggal)
+      + ' belum ada di Google Sheet tindakan harian. Buat tabnya lebih dahulu, '
+      + 'lengkap dengan baris judulnya, lalu simpan lagi.' };
+  }
   const hasil = tulisBarisSheet_(sh, d);
-  if (hasil.ok && !hasil.catatan && sh.getName()) hasil.tab = sh.getName();
+  if (hasil.ok && !hasil.catatan) hasil.tab = sh.getName();
   return hasil;
 }
 
