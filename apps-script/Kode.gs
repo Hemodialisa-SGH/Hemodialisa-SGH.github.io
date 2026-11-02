@@ -1067,6 +1067,59 @@ function daftarPetugas_() {
   return hasil;
 }
 
+/**
+ * Memeriksa isi tab Petugas dan melaporkan hal yang bisa menyesatkan catatan
+ * aktivitas: PIN kembar, PIN terlalu pendek, baris setengah terisi, dan ada
+ * tidaknya penanggung jawab. Tidak menampilkan PIN-nya, hanya namanya.
+ */
+function periksaPetugas() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName(TAB_PETUGAS);
+  if (!sh) {
+    const pesan = 'Tab "' + TAB_PETUGAS + '" belum ada. Jalankan siapkan() lebih dahulu.';
+    Logger.log(pesan);
+    return pesan;
+  }
+  const baris = sh.getLastRow() > 1
+    ? sh.getRange(2, 1, sh.getLastRow() - 1, KOLOM_PETUGAS.length).getValues() : [];
+  const keluar = [];
+  const pakai = {};
+  let aktif = 0, adaPJ = false;
+
+  baris.forEach((b, i) => {
+    const nomor = i + 2;
+    const nama = String(b[0] || '').trim();
+    const pin = String(b[1] == null ? '' : b[1]).trim();
+    const peran = String(b[2] || '').trim();
+    const hidup = String(b[3] || 'ya').trim().toLowerCase();
+    if (!nama && !pin) return;                       // baris kosong, diabaikan
+    if (!nama) keluar.push('Baris ' + nomor + ': nama belum diisi.');
+    if (!pin) keluar.push('Baris ' + nomor + ': PIN belum diisi, baris ini tidak bisa dipakai masuk.');
+    if (pin && pin.length < 6) keluar.push('Baris ' + nomor + ' (' + nama + '): PIN hanya ' + pin.length + ' angka, sebaiknya minimal 6.');
+    if (pin && !/^\d+$/.test(pin)) keluar.push('Baris ' + nomor + ' (' + nama + '): PIN sebaiknya angka saja.');
+    if (pin) {
+      if (pakai[pin]) keluar.push('PIN kembar: ' + pakai[pin] + ' dan ' + nama
+        + ' memakai PIN yang sama. Catatan aktivitas akan salah nama — ganti salah satunya.');
+      else pakai[pin] = nama;
+    }
+    if (hidup !== 'tidak' && hidup !== 'no' && nama && pin) {
+      aktif++;
+      if (peran.toLowerCase().indexOf('pj') === 0) adaPJ = true;
+    }
+  });
+
+  const umum = PropertiesService.getScriptProperties().getProperty('PIN_STAF');
+  if (umum) keluar.push('PIN unit bersama masih aktif di properti skrip. Siapa pun yang memakainya '
+    + 'tercatat sebagai "Petugas unit", bukan nama orangnya. Kosongkan bila ingin PIN perorangan saja.');
+  if (!adaPJ) keluar.push('Belum ada baris aktif dengan peran PJ, jadi catatan aktivitas belum bisa dibuka siapa pun.');
+
+  const ringkas = aktif + ' petugas aktif.' + (keluar.length ? '' : ' Tidak ada yang perlu diperbaiki.');
+  const hasil = [ringkas].concat(keluar).join('\n');
+  Logger.log(hasil);
+  SpreadsheetApp.getActive().toast(ringkas);
+  return hasil;
+}
+
 /** Dipanggil setelah daftar petugas diubah, agar PIN baru langsung berlaku. */
 function segarkanPetugas() {
   try { CacheService.getScriptCache().remove('daftar_petugas'); } catch (err) {}
