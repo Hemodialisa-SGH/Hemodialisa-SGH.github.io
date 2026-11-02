@@ -123,6 +123,18 @@ function siapkan() {
 }
 
 /**
+ * Uji paling sederhana: tidak menyentuh Sheet, Drive, maupun jaringan.
+ * Bila halo() pun gagal, masalahnya ada pada peramban atau akun Google yang
+ * dipakai menjalankan editor, bukan pada kode maupun Sheet-nya.
+ */
+function halo() {
+  const pesan = 'Skrip berjalan. Waktu server: '
+    + Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm:ss');
+  Logger.log(pesan);
+  return pesan;
+}
+
+/**
  * Pemeriksa cepat tanpa mengubah apa pun: memastikan skrip benar-benar
  * menempel pada Sheet jadwal HD dan menyebutkan tab apa saja yang ada.
  * Jalankan ini lebih dahulu bila siapkan() memberi error tak jelas.
