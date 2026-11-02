@@ -59,44 +59,88 @@ const BLOKIR_MENIT = 15;
 
 function siapkan() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sh = ss.getSheetByName(TAB_DB);
-  if (!sh) {
-    sh = ss.insertSheet(TAB_DB, ss.getNumSheets());   // selalu di urutan paling akhir
+  if (!ss) {
+    throw new Error('Skrip ini tidak menempel pada Google Sheet mana pun. '
+      + 'Buka Sheet jadwal HD, lalu Ekstensi > Apps Script, dan pasang kodenya di sana.');
+  }
+  const dibuat = [], gagal = [];
+
+  /* Tiap tab dibuat sendiri-sendiri dan kesalahannya ditangkap, supaya satu
+     langkah yang gagal — misalnya karena gangguan sementara di Google — tidak
+     membatalkan tab lain yang sudah terbentuk. Jalankan ulang untuk melanjutkan
+     yang belum jadi; tab yang sudah ada tidak disentuh. */
+  const buat = (nama, isi) => {
+    if (ss.getSheetByName(nama)) return;
+    try {
+      const sh = ss.insertSheet(nama, ss.getNumSheets());
+      if (isi) isi(sh);
+      dibuat.push(nama);
+    } catch (err) {
+      gagal.push(nama + ' (' + (err.message || err) + ')');
+    }
+  };
+
+  buat(TAB_DB, sh => {
     sh.getRange(1, 1, 1, KOLOM.length).setValues([KOLOM]).setFontWeight('bold');
     sh.setFrozenRows(1);
     sh.getRange('A:C').setNumberFormat('@');
     sh.setColumnWidths(1, KOLOM.length, 110);
-  }
-  if (!ss.getSheetByName(TAB_TAMPIL)) ss.insertSheet(TAB_TAMPIL, ss.getNumSheets());
-  let sr = ss.getSheetByName(TAB_SARAN);
-  if (!sr) {
-    sr = ss.insertSheet(TAB_SARAN, ss.getNumSheets());
-    sr.getRange(1, 1, 1, KOLOM_SARAN.length).setValues([KOLOM_SARAN]).setFontWeight('bold');
-    sr.setFrozenRows(1);
-    sr.setColumnWidth(5, 420);
-  }
-  let pt = ss.getSheetByName(TAB_PETUGAS);
-  if (!pt) {
-    pt = ss.insertSheet(TAB_PETUGAS, ss.getNumSheets());
-    pt.getRange(1, 1, 1, KOLOM_PETUGAS.length).setValues([KOLOM_PETUGAS]).setFontWeight('bold');
-    pt.setFrozenRows(1);
-    pt.getRange('B:B').setNumberFormat('@');     // PIN tetap sebagai teks
-    pt.getRange(2, 1, 2, KOLOM_PETUGAS.length).setValues([
+  });
+  buat(TAB_TAMPIL, null);
+  buat(TAB_SARAN, sh => {
+    sh.getRange(1, 1, 1, KOLOM_SARAN.length).setValues([KOLOM_SARAN]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+    sh.setColumnWidth(5, 420);
+  });
+  buat(TAB_PETUGAS, sh => {
+    sh.getRange(1, 1, 1, KOLOM_PETUGAS.length).setValues([KOLOM_PETUGAS]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+    sh.getRange('B:B').setNumberFormat('@');     // PIN tetap sebagai teks
+    sh.getRange(2, 1, 2, KOLOM_PETUGAS.length).setValues([
       ['Penanggung jawab HD', '123456', 'PJ', 'ya'],
       ['Contoh perawat', '234567', 'Perawat', 'tidak'],
     ]);
-    pt.setColumnWidths(1, KOLOM_PETUGAS.length, 160);
+    sh.setColumnWidths(1, KOLOM_PETUGAS.length, 160);
+  });
+  buat(TAB_LOG, sh => {
+    sh.getRange(1, 1, 1, KOLOM_LOG.length).setValues([KOLOM_LOG]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+    sh.setColumnWidth(1, 150); sh.setColumnWidth(2, 180); sh.setColumnWidth(5, 420);
+  });
+
+  try {
+    const props = PropertiesService.getScriptProperties();
+    if (!props.getProperty('PIN_STAF')) props.setProperty('PIN_STAF', '1209');
+  } catch (err) { gagal.push('PIN awal (' + (err.message || err) + ')'); }
+
+  const ada = [TAB_DB, TAB_TAMPIL, TAB_SARAN, TAB_PETUGAS, TAB_LOG].filter(n => ss.getSheetByName(n));
+  const pesan = 'Tab siap: ' + ada.join(', ')
+    + (dibuat.length ? '. Baru dibuat: ' + dibuat.join(', ') : '. Tidak ada tab baru')
+    + (gagal.length ? '. GAGAL: ' + gagal.join('; ') + '. Jalankan siapkan() lagi.' : '.');
+  Logger.log(pesan);
+  try { ss.toast(pesan.slice(0, 200)); } catch (err) {}
+  return pesan;
+}
+
+/**
+ * Pemeriksa cepat tanpa mengubah apa pun: memastikan skrip benar-benar
+ * menempel pada Sheet jadwal HD dan menyebutkan tab apa saja yang ada.
+ * Jalankan ini lebih dahulu bila siapkan() memberi error tak jelas.
+ */
+function cekSambungan() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) {
+    const p = 'Skrip tidak menempel pada Sheet mana pun.';
+    Logger.log(p);
+    return p;
   }
-  let lg = ss.getSheetByName(TAB_LOG);
-  if (!lg) {
-    lg = ss.insertSheet(TAB_LOG, ss.getNumSheets());
-    lg.getRange(1, 1, 1, KOLOM_LOG.length).setValues([KOLOM_LOG]).setFontWeight('bold');
-    lg.setFrozenRows(1);
-    lg.setColumnWidth(1, 150); lg.setColumnWidth(2, 180); lg.setColumnWidth(5, 420);
-  }
-  const props = PropertiesService.getScriptProperties();
-  if (!props.getProperty('PIN_STAF')) props.setProperty('PIN_STAF', '1209');
-  SpreadsheetApp.getActive().toast('Tab Database dan Tampilan siap. Lanjutkan dengan imporTabBulan.');
+  const nama = ss.getSheets().map(sh => sh.getName());
+  const kurang = [TAB_DB, TAB_TAMPIL, TAB_SARAN, TAB_PETUGAS, TAB_LOG].filter(n => nama.indexOf(n) < 0);
+  const pesan = 'Buku kerja: ' + ss.getName() + '\nTab: ' + nama.join(', ')
+    + (kurang.length ? '\nBelum ada: ' + kurang.join(', ') + ' — jalankan siapkan().'
+                     : '\nSemua tab yang diperlukan sudah ada.');
+  Logger.log(pesan);
+  return pesan;
 }
 
 /**
